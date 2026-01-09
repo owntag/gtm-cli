@@ -1,0 +1,46 @@
+{
+  "name": "@owntag/gtm-cli",
+  "version": "1.0.0",
+  "exports": "./src/main.ts",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --watch --env-file src/main.ts",
+    "start": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --env-file src/main.ts",
+    "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --output gtm src/main.ts",
+    "compile:all": "deno task compile:macos && deno task compile:linux && deno task compile:windows",
+    "compile:macos": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target x86_64-apple-darwin --output dist/gtm-macos-x64 src/main.ts && deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target aarch64-apple-darwin --output dist/gtm-macos-arm64 src/main.ts",
+    "compile:linux": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target x86_64-unknown-linux-gnu --output dist/gtm-linux-x64 src/main.ts",
+    "compile:windows": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target x86_64-pc-windows-msvc --output dist/gtm-windows-x64.exe src/main.ts",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
+    "check": "deno check src/main.ts"
+  },
+  "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.8",
+    "@cliffy/table": "jsr:@cliffy/table@^1.0.0-rc.8",
+    "@cliffy/prompt": "jsr:@cliffy/prompt@^1.0.0-rc.8",
+    "@cliffy/ansi": "jsr:@cliffy/ansi@^1.0.0-rc.8",
+    "@std/path": "jsr:@std/path@^1",
+    "@std/fs": "jsr:@std/fs@^1",
+    "@std/fmt": "jsr:@std/fmt@^1",
+    "googleapis": "npm:googleapis@^144"
+  },
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any", "verbatim-module-syntax", "no-slow-types"]
+    }
+  }
+}
