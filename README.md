@@ -20,12 +20,12 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 **macOS, Linux, WSL:**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
 ```
 
 ### Manual Download
 
-Download the binary for your platform from [Releases](https://github.com/justusbluemer/gtm-cli/releases):
+Download the binary for your platform from [Releases](https://github.com/owntag/gtm-cli/releases):
 
 | Platform | Binary |
 |----------|--------|
@@ -36,7 +36,7 @@ Download the binary for your platform from [Releases](https://github.com/justusb
 
 ```bash
 # Example for macOS Apple Silicon
-curl -fsSL https://github.com/justusbluemer/gtm-cli/releases/latest/download/gtm-darwin-arm64 -o gtm
+curl -fsSL https://github.com/owntag/gtm-cli/releases/latest/download/gtm-darwin-arm64 -o gtm
 chmod +x gtm
 sudo mv gtm /usr/local/bin/
 ```
@@ -47,13 +47,13 @@ If you have Deno installed, run directly without installing:
 
 ```bash
 deno run --allow-net --allow-read --allow-write --allow-env --allow-run \
-  https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/src/main.ts
+  https://raw.githubusercontent.com/owntag/gtm-cli/main/src/main.ts
 ```
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/justusbluemer/gtm-cli.git
+git clone https://github.com/owntag/gtm-cli.git
 cd gtm-cli
 deno task compile
 ./gtm --help
@@ -413,7 +413,7 @@ jobs:
         
       - name: Install GTM CLI
         run: |
-          curl -fsSL https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
           
       - name: Deploy to GTM
         env:
@@ -471,4 +471,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Credits
 
-Built by [Justus Blümer](https://github.com/justusbluemer).
+Built by [owntag](https://owntag.com) - Server-Side GTM Hosting Made Easy.

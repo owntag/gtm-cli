@@ -1,6 +1,6 @@
 #!/bin/bash
 # GTM CLI Installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
 
 set -e
 
@@ -64,7 +64,7 @@ detect_arch() {
 
 # Get latest release version from GitHub
 get_latest_version() {
-    curl -fsSL "https://api.github.com/repos/justusbluemer/gtm-cli/releases/latest" 2>/dev/null | \
+    curl -fsSL "https://api.github.com/repos/owntag/gtm-cli/releases/latest" 2>/dev/null | \
         grep '"tag_name":' | \
         sed -E 's/.*"([^"]+)".*/\1/' || echo ""
 }
@@ -86,7 +86,7 @@ main() {
     VERSION=$(get_latest_version)
     
     if [ -z "$VERSION" ]; then
-        error "Could not determine latest version. Please check https://github.com/justusbluemer/gtm-cli/releases"
+        error "Could not determine latest version. Please check https://github.com/owntag/gtm-cli/releases"
     fi
     
     info "Latest version: ${VERSION}"
@@ -97,7 +97,7 @@ main() {
         BINARY_NAME="${BINARY_NAME}.exe"
     fi
     
-    DOWNLOAD_URL="https://github.com/justusbluemer/gtm-cli/releases/download/${VERSION}/${BINARY_NAME}"
+    DOWNLOAD_URL="https://github.com/owntag/gtm-cli/releases/download/${VERSION}/${BINARY_NAME}"
     
     # Determine install location
     if [ -w "/usr/local/bin" ]; then
