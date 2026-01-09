@@ -73,11 +73,11 @@ get_latest_version() {
 format_bytes() {
     local bytes=$1
     if [ "$bytes" -ge 1073741824 ]; then
-        echo "$(awk "BEGIN {printf \"%.1f\", $bytes/1073741824}") GB"
+        echo "$((bytes / 1073741824)) GB"
     elif [ "$bytes" -ge 1048576 ]; then
-        echo "$(awk "BEGIN {printf \"%.1f\", $bytes/1048576}") MB"
+        echo "$((bytes / 1048576)) MB"
     elif [ "$bytes" -ge 1024 ]; then
-        echo "$(awk "BEGIN {printf \"%.1f\", $bytes/1024}") KB"
+        echo "$((bytes / 1024)) KB"
     else
         echo "${bytes} bytes"
     fi
