@@ -400,46 +400,7 @@ gtm completions fish > ~/.config/fish/completions/gtm.fish
 
 ## For AI Agents
 
-GTM CLI is designed to work well with AI agents and LLMs.
-
-### Comprehensive Guide
-
-**AI assistants should run this command first:**
-
-```bash
-gtm agent guide
-```
-
-This outputs a detailed guide covering:
-- Quick start and configuration
-- All variable, trigger, and tag types with examples
-- Custom template workflows
-- Performance optimization (parallel execution, batching)
-- Common errors and solutions
-- Complete implementation examples
-
-### Design Principles
-
-1. **JSON Output** - Use `--output json` for structured, parseable output
-2. **Predictable Errors** - Errors are written to stderr with consistent format
-3. **Exit Codes** - Non-zero exit codes on failure
-4. **Idempotent Operations** - Safe to retry failed commands
-
-### Example Workflow
-
-```bash
-# List tags and parse with jq
-gtm tags list --output json | jq '.[] | select(.type == "html")'
-
-# Get specific tag details
-gtm tags get --tag-id 42 --output json
-
-# Create tag from JSON config
-gtm tags create --name "Event Tag" --type gaawe --config "$(cat tag-config.json)"
-
-# Publish version
-gtm versions create --name "Agent Update $(date +%Y%m%d)" | jq -r '.containerVersion.containerVersionId' | xargs -I {} gtm versions publish --version-id {}
-```
+GTM CLI works great with AI assistants and LLMs. A comprehensive guide with examples, best practices, and troubleshooting is embedded in the CLI itself—agents can access it by running `gtm agent guide`.
 
 ## CI/CD Integration
 
