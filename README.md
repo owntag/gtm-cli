@@ -17,43 +17,45 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 
 ## Installation
 
-### Option 1: Pre-built Binary (Recommended)
+### Quick Install (Recommended)
 
-Download the latest release for your platform:
+**macOS, Linux, WSL:**
 
 ```bash
-# macOS (Apple Silicon)
-curl -fsSL https://github.com/owntag/gtm-cli/releases/latest/download/gtm-macos-arm64 -o gtm
-chmod +x gtm
-sudo mv gtm /usr/local/bin/
-
-# macOS (Intel)
-curl -fsSL https://github.com/owntag/gtm-cli/releases/latest/download/gtm-macos-x64 -o gtm
-chmod +x gtm
-sudo mv gtm /usr/local/bin/
-
-# Linux
-curl -fsSL https://github.com/owntag/gtm-cli/releases/latest/download/gtm-linux-x64 -o gtm
-chmod +x gtm
-sudo mv gtm /usr/local/bin/
-
-# Windows
-# Download gtm-windows-x64.exe from releases page
+curl -fsSL https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/install.sh | bash
 ```
 
-### Option 2: Run with Deno
+### Manual Download
 
-If you have Deno installed:
+Download the binary for your platform from [Releases](https://github.com/justusbluemer/gtm-cli/releases):
+
+| Platform | Binary |
+|----------|--------|
+| macOS (Apple Silicon) | `gtm-darwin-arm64` |
+| macOS (Intel) | `gtm-darwin-x64` |
+| Linux | `gtm-linux-x64` |
+| Windows | `gtm-windows-x64.exe` |
+
+```bash
+# Example for macOS Apple Silicon
+curl -fsSL https://github.com/justusbluemer/gtm-cli/releases/latest/download/gtm-darwin-arm64 -o gtm
+chmod +x gtm
+sudo mv gtm /usr/local/bin/
+```
+
+### Run with Deno
+
+If you have Deno installed, run directly without installing:
 
 ```bash
 deno run --allow-net --allow-read --allow-write --allow-env --allow-run \
-  https://raw.githubusercontent.com/owntag/gtm-cli/main/src/main.ts
+  https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/src/main.ts
 ```
 
-### Option 3: Build from Source
+### Build from Source
 
 ```bash
-git clone https://github.com/owntag/gtm-cli.git
+git clone https://github.com/justusbluemer/gtm-cli.git
 cd gtm-cli
 deno task compile
 ./gtm --help
@@ -410,15 +412,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Setup Deno
-        uses: denoland/setup-deno@v1
         
       - name: Install GTM CLI
         run: |
-          curl -fsSL https://github.com/owntag/gtm-cli/releases/latest/download/gtm-linux-x64 -o gtm
-          chmod +x gtm
-          sudo mv gtm /usr/local/bin/
+          curl -fsSL https://raw.githubusercontent.com/justusbluemer/gtm-cli/main/install.sh | bash
           
       - name: Deploy to GTM
         env:
@@ -459,10 +456,21 @@ src/
 └── utils/            # Utilities (output, errors, pagination)
 ```
 
+## Releasing
+
+To create a new release:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+GitHub Actions will automatically build binaries for all platforms and create a release.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
 ## Credits
 
-Built by [owntag GmbH](https://owntag.com) - Server-Side GTM Hosting Made Easy.
+Built by [Justus Blümer](https://github.com/justusbluemer).
