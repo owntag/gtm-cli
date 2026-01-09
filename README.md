@@ -471,4 +471,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Credits
 
-Built by [owntag](https://owntag.com) - Server-Side GTM Hosting Made Easy.
+Built by [owntag](https://owntag.eu) - 100% European hosting for Server Side Google Tag Manager.
