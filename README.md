@@ -2,8 +2,6 @@
 
 A powerful command-line interface for Google Tag Manager. Manage your GTM resources directly from the terminal - perfect for automation, CI/CD pipelines, and AI agents.
 
-![GTM CLI](./docs/screenshot.png)
-
 ## Features
 
 - **Full GTM API Coverage** - Manage all GTM resources: accounts, containers, workspaces, tags, triggers, variables, and more
