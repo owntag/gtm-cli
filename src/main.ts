@@ -37,6 +37,7 @@ import { printBanner, checkForUpdate } from "./utils/mod.ts";
 // ANSI colors
 const YELLOW = "\x1b[33m";
 const CYAN = "\x1b[36m";
+const DIM = "\x1b[2m";
 const RESET = "\x1b[0m";
 
 /**
@@ -85,6 +86,10 @@ const main = new Command()
       printBanner(options.color !== false);
     }
     this.showHelp();
+    // Show AI agent hint
+    console.log("");
+    console.log(`${DIM}🤖 AI/LLM agents: Run ${RESET}${CYAN}gtm agent guide${RESET}${DIM} for a comprehensive usage guide.${RESET}`);
+    console.log("");
   })
   // Authentication commands
   .command("auth", authCommand)
