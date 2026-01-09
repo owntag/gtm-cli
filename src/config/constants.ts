@@ -40,7 +40,7 @@ export const GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke";
 
 // Application info
 export const APP_NAME = "gtm-cli";
-export const APP_VERSION = "1.0.0";
+export const APP_VERSION = "1.1.0";
 export const APP_DESCRIPTION = "Command-line interface for Google Tag Manager";
 
 // Configuration paths
