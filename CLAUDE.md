@@ -166,18 +166,17 @@ deno task compile:all
 
 ## OAuth Credentials
 
-For production deployment, embed the OAuth client credentials in `src/config/constants.ts`:
-
-```typescript
-export const GOOGLE_CLIENT_ID = "your-production-client-id.apps.googleusercontent.com";
-export const GOOGLE_CLIENT_SECRET = "your-production-client-secret";
-```
-
-For development, set environment variables:
+**For development:** Set environment variables in `.env` file:
 ```bash
-export GOOGLE_CLIENT_ID="your-dev-client-id"
-export GOOGLE_CLIENT_SECRET="your-dev-secret"
+GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-client-secret"
 ```
+
+**For production builds:** OAuth credentials are embedded during CI build from GitHub secrets:
+- `GOOGLE_CLIENT_ID` - GitHub repo secret
+- `GOOGLE_CLIENT_SECRET` - GitHub repo secret
+
+The placeholders `__OAUTH_CLIENT_ID__` and `__OAUTH_CLIENT_SECRET__` in `src/config/constants.ts` are replaced by the GitHub Actions workflow during the release build. This keeps secrets out of the codebase.
 
 ## Testing the CLI
 
