@@ -5,11 +5,10 @@
   "tasks": {
     "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --watch --env-file src/main.ts",
     "start": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --env-file src/main.ts",
-    "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --output gtm src/main.ts",
-    "compile:all": "deno task compile:macos && deno task compile:linux && deno task compile:windows",
-    "compile:macos": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target x86_64-apple-darwin --output dist/gtm-macos-x64 src/main.ts && deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target aarch64-apple-darwin --output dist/gtm-macos-arm64 src/main.ts",
-    "compile:linux": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target x86_64-unknown-linux-gnu --output dist/gtm-linux-x64 src/main.ts",
-    "compile:windows": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --target x86_64-pc-windows-msvc --output dist/gtm-windows-x64.exe src/main.ts",
+    "compile": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --include src/agent-guide.md --output gtm src/main.ts",
+    "compile:all": "deno task compile:macos && deno task compile:linux",
+    "compile:macos": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --include src/agent-guide.md --target x86_64-apple-darwin --output dist/gtm-macos-x64 src/main.ts && deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --include src/agent-guide.md --target aarch64-apple-darwin --output dist/gtm-macos-arm64 src/main.ts",
+    "compile:linux": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-run --include src/agent-guide.md --target x86_64-unknown-linux-gnu --output dist/gtm-linux-x64 src/main.ts",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno check src/main.ts"

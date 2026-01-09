@@ -49,6 +49,7 @@ jobs:
             --allow-write \
             --allow-env \
             --allow-run \
+            --include src/agent-guide.md \
             --target ${{ matrix.target }} \
             --output ${{ matrix.binary }} \
             src/main.ts

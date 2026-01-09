@@ -30,6 +30,7 @@ import {
   gtagConfigsCommand,
   userPermissionsCommand,
   upgradeCommand,
+  agentCommand,
 } from "./commands/mod.ts";
 import { printBanner, checkForUpdate } from "./utils/mod.ts";
 
@@ -74,6 +75,7 @@ const main = new Command()
   .example("Setup defaults", "gtm config setup")
   .example("Publish version", "gtm versions publish --version-id 42")
   .example("Upgrade CLI", "gtm upgrade")
+  .example("AI agent guide", "gtm agent guide")
   // Global options
   .globalOption("-q, --quiet", "Suppress non-essential output")
   .globalOption("--no-color", "Disable colored output")
@@ -125,7 +127,9 @@ const main = new Command()
   // User permission commands
   .command("user-permissions", userPermissionsCommand)
   // Upgrade command
-  .command("upgrade", upgradeCommand);
+  .command("upgrade", upgradeCommand)
+  // Agent resources (for AI/LLM integration)
+  .command("agent", agentCommand);
 
 // Run CLI
 if (import.meta.main) {

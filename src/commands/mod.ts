@@ -23,3 +23,4 @@ export { destinationsCommand } from "./destinations.ts";
 export { gtagConfigsCommand } from "./gtag-configs.ts";
 export { userPermissionsCommand } from "./user-permissions.ts";
 export { upgradeCommand } from "./upgrade.ts";
+export { agentCommand } from "./agent.ts";
