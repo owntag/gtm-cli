@@ -69,6 +69,20 @@ get_latest_version() {
         sed -E 's/.*"([^"]+)".*/\1/' || echo ""
 }
 
+# Format bytes to human readable
+format_bytes() {
+    local bytes=$1
+    if [ "$bytes" -ge 1073741824 ]; then
+        echo "$(awk "BEGIN {printf \"%.1f\", $bytes/1073741824}") GB"
+    elif [ "$bytes" -ge 1048576 ]; then
+        echo "$(awk "BEGIN {printf \"%.1f\", $bytes/1048576}") MB"
+    elif [ "$bytes" -ge 1024 ]; then
+        echo "$(awk "BEGIN {printf \"%.1f\", $bytes/1024}") KB"
+    else
+        echo "${bytes} bytes"
+    fi
+}
+
 # Main installation
 main() {
     print_banner
@@ -112,21 +126,35 @@ main() {
         INSTALL_PATH="${INSTALL_DIR}/gtm.exe"
     fi
     
-    info "Downloading from: ${DOWNLOAD_URL}"
+    # Get file size for progress display
+    FILE_SIZE=$(curl -sI -L "$DOWNLOAD_URL" 2>/dev/null | grep -i content-length | tail -1 | awk '{print $2}' | tr -d '\r')
+    if [ -n "$FILE_SIZE" ] && [ "$FILE_SIZE" -gt 0 ] 2>/dev/null; then
+        SIZE_DISPLAY=$(format_bytes "$FILE_SIZE")
+        info "Downloading ${BINARY_NAME} (${SIZE_DISPLAY})..."
+    else
+        info "Downloading ${BINARY_NAME}..."
+    fi
     
-    # Download binary
+    echo ""
+    
+    # Download binary with progress
     if command -v curl &> /dev/null; then
-        HTTP_CODE=$(curl -fsSL -w "%{http_code}" -o "${INSTALL_PATH}.tmp" "$DOWNLOAD_URL" 2>/dev/null || echo "000")
+        # Use curl with progress bar (shows %, total, received, speed, time)
+        if ! curl -fL --progress-bar -o "${INSTALL_PATH}.tmp" "$DOWNLOAD_URL"; then
+            rm -f "${INSTALL_PATH}.tmp"
+            error "Download failed. The release for ${OS}-${ARCH} might not be available yet."
+        fi
     elif command -v wget &> /dev/null; then
-        wget -q -O "${INSTALL_PATH}.tmp" "$DOWNLOAD_URL" && HTTP_CODE="200" || HTTP_CODE="000"
+        # Use wget with progress bar
+        if ! wget --show-progress -q -O "${INSTALL_PATH}.tmp" "$DOWNLOAD_URL"; then
+            rm -f "${INSTALL_PATH}.tmp"
+            error "Download failed. The release for ${OS}-${ARCH} might not be available yet."
+        fi
     else
         error "Neither curl nor wget found. Please install one of them."
     fi
     
-    if [ "$HTTP_CODE" != "200" ]; then
-        rm -f "${INSTALL_PATH}.tmp"
-        error "Download failed. The release for ${OS}-${ARCH} might not be available yet."
-    fi
+    echo ""
     
     # Move to final location
     mv "${INSTALL_PATH}.tmp" "$INSTALL_PATH"
