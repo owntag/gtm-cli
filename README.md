@@ -6,6 +6,7 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 
 - **Full GTM API Coverage** - Manage all GTM resources: accounts, containers, workspaces, tags, triggers, variables, and more
 - **Flexible Authentication** - OAuth, Service Account, or Application Default Credentials
+- **Self-Updating** - Built-in upgrade command to stay up to date
 - **AI-Friendly** - Structured JSON output that AI agents can easily parse
 - **Human-Friendly** - Colored output, tables, and progress indicators
 - **Offline Token Storage** - Authenticate once, stay logged in
@@ -23,6 +24,8 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
 ```
 
+> **Note:** Windows is not currently supported. Please use [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install) instead.
+
 ### Manual Download
 
 Download the binary for your platform from [Releases](https://github.com/owntag/gtm-cli/releases):
@@ -31,8 +34,7 @@ Download the binary for your platform from [Releases](https://github.com/owntag/
 |----------|--------|
 | macOS (Apple Silicon) | `gtm-darwin-arm64` |
 | macOS (Intel) | `gtm-darwin-x64` |
-| Linux | `gtm-linux-x64` |
-| Windows | `gtm-windows-x64.exe` |
+| Linux (x64) | `gtm-linux-x64` |
 
 ```bash
 # Example for macOS Apple Silicon
@@ -94,6 +96,20 @@ gtm tags list --account-id 123 --container-id 456 --workspace-id 1
 # Or, if you've set up defaults:
 gtm tags list
 ```
+
+## Updating
+
+GTM CLI can update itself:
+
+```bash
+# Check for updates
+gtm upgrade --check
+
+# Upgrade to the latest version
+gtm upgrade
+```
+
+The CLI will also notify you when a new version is available (checks once per day).
 
 ## Authentication Options
 
@@ -194,6 +210,14 @@ Available configuration keys:
 - `defaultContainerId` - Default GTM container ID  
 - `defaultWorkspaceId` - Default GTM workspace ID
 - `outputFormat` - Default output format (json, table, compact)
+
+### Upgrade
+
+```bash
+gtm upgrade           # Upgrade to the latest version
+gtm upgrade --check   # Check for updates without installing
+gtm upgrade --force   # Force reinstall current version
+```
 
 ### Accounts
 
@@ -436,7 +460,6 @@ jobs:
 deno task dev        # Run in development mode with watch
 deno task start      # Run the CLI
 deno task compile    # Build standalone binary for current platform
-deno task compile:all # Build for all platforms
 deno task lint       # Run linter
 deno task fmt        # Format code
 deno task check      # Type check
@@ -451,7 +474,7 @@ src/
 ├── api/              # GTM API client wrapper
 ├── commands/         # CLI command definitions
 ├── config/           # Configuration management
-└── utils/            # Utilities (output, errors, pagination)
+└── utils/            # Utilities (output, errors, update checker)
 ```
 
 ## Releasing
@@ -459,11 +482,11 @@ src/
 To create a new release:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
-GitHub Actions will automatically build binaries for all platforms and create a release.
+GitHub Actions will automatically build binaries for macOS and Linux and create a release.
 
 ## License
 

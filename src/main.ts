@@ -29,8 +29,35 @@ import {
   destinationsCommand,
   gtagConfigsCommand,
   userPermissionsCommand,
+  upgradeCommand,
 } from "./commands/mod.ts";
-import { printBanner } from "./utils/mod.ts";
+import { printBanner, checkForUpdate } from "./utils/mod.ts";
+
+// ANSI colors
+const YELLOW = "\x1b[33m";
+const CYAN = "\x1b[36m";
+const RESET = "\x1b[0m";
+
+/**
+ * Show update hint if a new version is available
+ * Runs asynchronously to not block startup
+ */
+async function showUpdateHint(quiet: boolean): Promise<void> {
+  if (quiet) return;
+
+  try {
+    const { updateAvailable, latestVersion, currentVersion } = await checkForUpdate();
+
+    if (updateAvailable && latestVersion) {
+      console.log("");
+      console.log(`${YELLOW}💡 Update available: ${latestVersion} (current: ${currentVersion})${RESET}`);
+      console.log(`   Run ${CYAN}gtm upgrade${RESET} to update.`);
+      console.log("");
+    }
+  } catch {
+    // Silently ignore update check failures
+  }
+}
 
 // Create main command
 const main = new Command()
@@ -46,6 +73,7 @@ const main = new Command()
   .example("Create tag", "gtm tags create --name 'My Tag' --type html --config '{...}'")
   .example("Setup defaults", "gtm config setup")
   .example("Publish version", "gtm versions publish --version-id 42")
+  .example("Upgrade CLI", "gtm upgrade")
   // Global options
   .globalOption("-q, --quiet", "Suppress non-essential output")
   .globalOption("--no-color", "Disable colored output")
@@ -95,11 +123,22 @@ const main = new Command()
   // Gtag config commands
   .command("gtag-configs", gtagConfigsCommand)
   // User permission commands
-  .command("user-permissions", userPermissionsCommand);
+  .command("user-permissions", userPermissionsCommand)
+  // Upgrade command
+  .command("upgrade", upgradeCommand);
 
 // Run CLI
 if (import.meta.main) {
+  // Parse args to get quiet flag for update hint
+  const quietFlag = Deno.args.includes("-q") || Deno.args.includes("--quiet");
+  const isUpgradeCommand = Deno.args.includes("upgrade");
+
   await main.parse(Deno.args);
+
+  // Show update hint after command completes (unless it's the upgrade command itself)
+  if (!isUpgradeCommand) {
+    await showUpdateHint(quietFlag);
+  }
 }
 
 export { main };

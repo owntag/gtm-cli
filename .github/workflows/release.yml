@@ -24,9 +24,6 @@ jobs:
           - target: aarch64-apple-darwin
             os: macos-latest
             binary: gtm-darwin-arm64
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-            binary: gtm-windows-x64.exe
 
     steps:
       - name: Checkout
@@ -38,7 +35,6 @@ jobs:
           deno-version: v2.x
 
       - name: Embed credentials
-        shell: bash
         run: |
           # Replace placeholder credentials with actual values from secrets
           sed -i.bak 's/__OAUTH_CLIENT_ID__/${{ secrets.GOOGLE_CLIENT_ID }}/g' src/config/constants.ts
@@ -46,7 +42,6 @@ jobs:
           rm -f src/config/constants.ts.bak
 
       - name: Build binary
-        shell: bash
         run: |
           deno compile \
             --allow-net \

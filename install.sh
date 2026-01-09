@@ -48,7 +48,9 @@ detect_os() {
     case "$(uname -s)" in
         Linux*)     echo "linux" ;;
         Darwin*)    echo "darwin" ;;
-        MINGW*|MSYS*|CYGWIN*) echo "windows" ;;
+        MINGW*|MSYS*|CYGWIN*) 
+            error "Windows is not currently supported. Please use WSL (Windows Subsystem for Linux) instead."
+            ;;
         *)          error "Unsupported operating system: $(uname -s)" ;;
     esac
 }
@@ -107,10 +109,6 @@ main() {
     
     # Build download URL
     BINARY_NAME="gtm-${OS}-${ARCH}"
-    if [ "$OS" = "windows" ]; then
-        BINARY_NAME="${BINARY_NAME}.exe"
-    fi
-    
     DOWNLOAD_URL="https://github.com/owntag/gtm-cli/releases/download/${VERSION}/${BINARY_NAME}"
     
     # Determine install location
@@ -122,9 +120,6 @@ main() {
     fi
     
     INSTALL_PATH="${INSTALL_DIR}/gtm"
-    if [ "$OS" = "windows" ]; then
-        INSTALL_PATH="${INSTALL_DIR}/gtm.exe"
-    fi
     
     # Get file size for progress display
     FILE_SIZE=$(curl -sI -L "$DOWNLOAD_URL" 2>/dev/null | grep -i content-length | tail -1 | awk '{print $2}' | tr -d '\r')

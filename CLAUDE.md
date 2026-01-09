@@ -6,6 +6,8 @@
 
 **Maintained by**: owntag GmbH
 
+**Supported Platforms**: macOS, Linux (no Windows support)
+
 ## Architecture
 
 ### Runtime Environment
@@ -28,7 +30,8 @@ src/
 ├── auth/
 │   ├── mod.ts             # Auth module exports
 │   ├── credentials.ts     # Local credential storage
-│   └── oauth.ts           # OAuth 2.0 flow implementation
+│   ├── oauth.ts           # OAuth 2.0 flow implementation
+│   └── service-account.ts # Service account & ADC auth
 ├── api/
 │   ├── mod.ts             # API module exports
 │   └── client.ts          # GTM API client wrapper, type exports
@@ -36,6 +39,7 @@ src/
 │   ├── mod.ts             # Command exports
 │   ├── auth.ts            # Login, logout, status
 │   ├── config.ts          # Configuration management
+│   ├── upgrade.ts         # Self-update command
 │   ├── accounts.ts        # Account operations
 │   ├── containers.ts      # Container CRUD
 │   ├── workspaces.ts      # Workspace management
@@ -62,7 +66,9 @@ src/
     ├── mod.ts             # Utils module exports
     ├── output.ts          # Output formatting (JSON, table, compact)
     ├── errors.ts          # Error handling utilities
-    └── pagination.ts      # Pagination helpers
+    ├── pagination.ts      # Pagination helpers
+    ├── banner.ts          # ASCII banner display
+    └── update-checker.ts  # Version checking and self-update
 ```
 
 ## Development Commands
@@ -71,7 +77,6 @@ src/
 deno task dev        # Run with watch mode
 deno task start      # Run the CLI
 deno task compile    # Build binary for current platform
-deno task compile:all # Build for all platforms (macOS, Linux, Windows)
 deno task lint       # Run Deno linter
 deno task fmt        # Format code
 deno task check      # Type check
@@ -88,18 +93,25 @@ deno task check      # Type check
 7. Tokens stored in `~/.config/gtm-cli/credentials.json`
 8. Subsequent commands use stored tokens (auto-refresh when expired)
 
+### Alternative Auth Methods
+- **Service Account**: `gtm auth login --service-account /path/to/key.json`
+- **ADC**: `gtm auth login --adc` (uses gcloud credentials)
+
 ## Configuration Files
 
 | File | Location | Purpose |
 |------|----------|---------|
 | `credentials.json` | `~/.config/gtm-cli/` | OAuth tokens (access, refresh) |
 | `config.json` | `~/.config/gtm-cli/` | User preferences, defaults |
+| `auth-method.json` | `~/.config/gtm-cli/` | Selected auth method (OAuth/SA/ADC) |
+| `update-check.json` | `~/.config/gtm-cli/` | Last update check time & version |
 
 ## Available Commands
 
 ### Core Commands
 - `gtm auth` - Authentication (login, logout, status)
 - `gtm config` - Configuration (get, set, unset, setup)
+- `gtm upgrade` - Self-update to latest version
 - `gtm accounts` - Account management
 - `gtm containers` - Container CRUD
 - `gtm workspaces` - Workspace management
@@ -149,19 +161,21 @@ gtm config set defaultAccountId 123456
 ### 4. Fingerprint Handling
 Most update operations require a fingerprint for optimistic concurrency control. The CLI automatically fetches the current fingerprint if not provided.
 
+### 5. Self-Update
+- `gtm upgrade` downloads and replaces the binary
+- Update check runs once per day (cached)
+- Shows hint after commands when update available
+
 ## Building for Distribution
 
 ```bash
 # Build for current platform
 deno task compile
 
-# Build for all platforms
-deno task compile:all
-# Creates:
-#   dist/gtm-macos-arm64
-#   dist/gtm-macos-x64
-#   dist/gtm-linux-x64
-#   dist/gtm-windows-x64.exe
+# GitHub Actions builds for all platforms on tag push:
+#   gtm-darwin-arm64 (macOS Apple Silicon)
+#   gtm-darwin-x64 (macOS Intel)
+#   gtm-linux-x64 (Linux)
 ```
 
 ## OAuth Credentials
@@ -189,3 +203,15 @@ deno task start auth login
 ./gtm accounts list
 ./gtm containers list --account-id 123456
 ```
+
+## Releasing
+
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
+
+GitHub Actions will:
+1. Build binaries for macOS (arm64 + x64) and Linux (x64)
+2. Embed OAuth credentials from secrets
+3. Create GitHub Release with binaries attached
