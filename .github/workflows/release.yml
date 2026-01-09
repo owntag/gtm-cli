@@ -41,8 +41,8 @@ jobs:
         shell: bash
         run: |
           # Replace placeholder credentials with actual values from secrets
-          sed -i.bak 's/YOUR_PRODUCTION_CLIENT_ID\.apps\.googleusercontent\.com/${{ secrets.GOOGLE_CLIENT_ID }}/g' src/config/constants.ts
-          sed -i.bak 's/YOUR_PRODUCTION_CLIENT_SECRET/${{ secrets.GOOGLE_CLIENT_SECRET }}/g' src/config/constants.ts
+          sed -i.bak 's/__OAUTH_CLIENT_ID__/${{ secrets.GOOGLE_CLIENT_ID }}/g' src/config/constants.ts
+          sed -i.bak 's/__OAUTH_CLIENT_SECRET__/${{ secrets.GOOGLE_CLIENT_SECRET }}/g' src/config/constants.ts
           rm -f src/config/constants.ts.bak
 
       - name: Build binary

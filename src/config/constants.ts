@@ -1,18 +1,18 @@
 /**
  * Application constants and embedded configuration
  *
- * For development: These values are read from environment variables
- * For production: Replace with actual values before compiling the binary
+ * For development: Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables
+ * For production: The CI build embeds credentials from GitHub secrets
  */
 
 // OAuth 2.0 Client Credentials
 // These identify the GTM CLI application to Google
-// In production builds, replace these with your actual credentials
+// __OAUTH_CLIENT_ID__ and __OAUTH_CLIENT_SECRET__ are replaced during CI build
 export const GOOGLE_CLIENT_ID =
-  Deno.env.get("GOOGLE_CLIENT_ID") || "YOUR_PRODUCTION_CLIENT_ID.apps.googleusercontent.com";
+  Deno.env.get("GOOGLE_CLIENT_ID") || "__OAUTH_CLIENT_ID__";
 
 export const GOOGLE_CLIENT_SECRET =
-  Deno.env.get("GOOGLE_CLIENT_SECRET") || "YOUR_PRODUCTION_CLIENT_SECRET";
+  Deno.env.get("GOOGLE_CLIENT_SECRET") || "__OAUTH_CLIENT_SECRET__";
 
 // OAuth configuration
 export const OAUTH_SCOPES = [
