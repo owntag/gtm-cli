@@ -38,6 +38,7 @@ jobs:
           deno-version: v2.x
 
       - name: Build binary
+        shell: bash
         run: |
           deno compile \
             --allow-net \
