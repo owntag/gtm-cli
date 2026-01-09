@@ -396,40 +396,107 @@ async function openBrowser(url: string): Promise<void> {
 function getSuccessHtml(): string {
   return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Authentication Successful</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Authentication Successful – GTM CLI</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      min-height: 100vh;
+      background: #ffffff;
+      color: #1f2937;
     }
     .container {
       text-align: center;
-      padding: 2rem;
-      background: rgba(255,255,255,0.1);
-      border-radius: 1rem;
-      backdrop-filter: blur(10px);
+      padding: 3rem 2rem;
+      max-width: 420px;
     }
-    h1 { margin-bottom: 0.5rem; }
-    p { opacity: 0.9; }
-    .checkmark {
-      font-size: 4rem;
+    .icon-wrapper {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      background: #003399;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-wrapper svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+    }
+    .brand {
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #003399;
+      text-transform: uppercase;
       margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 0.75rem;
+    }
+    .message {
+      font-size: 1rem;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .hint {
+      display: inline-block;
+      background: #f3f4f6;
+      color: #374151;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 0.875rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+    }
+    .footer {
+      position: absolute;
+      bottom: 2rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    .footer a {
+      color: #003399;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="checkmark">✓</div>
-    <h1>Authentication Successful!</h1>
-    <p>You can close this window and return to the terminal.</p>
+    <div class="icon-wrapper">
+      <svg viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="brand">GTM CLI</div>
+    <h1>Authentication Successful</h1>
+    <p class="message">You're all set! You can close this window and return to your terminal.</p>
+    <div class="hint">gtm accounts list</div>
+  </div>
+  <div class="footer">
+    Powered by <a href="https://owntag.eu" target="_blank">owntag</a>
   </div>
 </body>
 </html>`;
@@ -441,41 +508,122 @@ function getSuccessHtml(): string {
 function getErrorHtml(error: string): string {
   return `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Authentication Failed</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Authentication Failed – GTM CLI</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
-      color: white;
+      min-height: 100vh;
+      background: #ffffff;
+      color: #1f2937;
     }
     .container {
       text-align: center;
-      padding: 2rem;
-      background: rgba(255,255,255,0.1);
-      border-radius: 1rem;
-      backdrop-filter: blur(10px);
+      padding: 3rem 2rem;
+      max-width: 420px;
     }
-    h1 { margin-bottom: 0.5rem; }
-    p { opacity: 0.9; }
-    .error-icon {
-      font-size: 4rem;
+    .icon-wrapper {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      background: #dc2626;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .icon-wrapper svg {
+      width: 40px;
+      height: 40px;
+      stroke: white;
+      stroke-width: 3;
+      fill: none;
+    }
+    .brand {
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #003399;
+      text-transform: uppercase;
       margin-bottom: 1rem;
+    }
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 0.75rem;
+    }
+    .message {
+      font-size: 1rem;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .error-detail {
+      display: inline-block;
+      background: #fef2f2;
+      color: #991b1b;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      font-size: 0.875rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      border: 1px solid #fecaca;
+    }
+    .hint {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    .hint code {
+      background: #f3f4f6;
+      color: #374151;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+    }
+    .footer {
+      position: absolute;
+      bottom: 2rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    .footer a {
+      color: #003399;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="error-icon">✗</div>
+    <div class="icon-wrapper">
+      <svg viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </div>
+    <div class="brand">GTM CLI</div>
     <h1>Authentication Failed</h1>
-    <p>${error}</p>
-    <p>Please try again in the terminal.</p>
+    <p class="message">Something went wrong during authentication.</p>
+    <div class="error-detail">${error}</div>
+    <p class="hint">Please try again with <code>gtm auth login</code></p>
+  </div>
+  <div class="footer">
+    Powered by <a href="https://owntag.eu" target="_blank">owntag</a>
   </div>
 </body>
 </html>`;
