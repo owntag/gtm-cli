@@ -16,12 +16,33 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 
 ## Installation
 
-### Quick Install (Recommended)
+### npm (Recommended for Node.js users)
+
+Install globally for use from anywhere:
+
+```bash
+npm install -g gtm-cli
+```
+
+Or add as a dev dependency for CI/CD with version pinning:
+
+```bash
+npm install --save-dev gtm-cli
+npx gtm accounts list
+```
+
+### Quick Install (Shell script)
 
 **macOS, Linux, WSL:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
+```
+
+Install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash -s -- v1.1.0
 ```
 
 > **Note:** Windows is not currently supported. Please use [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install) instead.
@@ -404,10 +425,53 @@ GTM CLI works great with AI assistants and LLMs. A comprehensive guide with exam
 
 ## CI/CD Integration
 
-GTM CLI works great in CI/CD pipelines with service account authentication:
+GTM CLI works great in CI/CD pipelines. Use npm for version pinning, which is recommended for reproducible builds:
+
+### Using npm (Recommended)
 
 ```yaml
-# GitHub Actions example
+# GitHub Actions example with npm
+jobs:
+  deploy-gtm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install GTM CLI
+        run: npm install gtm-cli@1.1.0
+          
+      - name: Deploy to GTM
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GTM_SERVICE_ACCOUNT_KEY }}
+        run: |
+          # Create and publish a new version
+          npx gtm versions create --name "Deploy ${{ github.sha }}" --output json
+          npx gtm versions publish --version-id $(npx gtm version-headers list --output json | jq -r '.[0].containerVersionId')
+```
+
+### Using package.json
+
+Add GTM CLI to your project's dev dependencies for easy version management:
+
+```json
+{
+  "devDependencies": {
+    "gtm-cli": "^1.1.0"
+  },
+  "scripts": {
+    "gtm:deploy": "gtm versions create --name 'Deploy' && gtm versions publish"
+  }
+}
+```
+
+### Using install script with version pinning
+
+```yaml
+# GitHub Actions example with install script
 jobs:
   deploy-gtm:
     runs-on: ubuntu-latest
@@ -416,13 +480,12 @@ jobs:
         
       - name: Install GTM CLI
         run: |
-          curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash -s -- v1.1.0
           
       - name: Deploy to GTM
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GTM_SERVICE_ACCOUNT_KEY }}
         run: |
-          # Create and publish a new version
           gtm versions create --name "Deploy ${{ github.sha }}" --output json
           gtm versions publish --version-id $(gtm version-headers list --output json | jq -r '.[0].containerVersionId')
 ```
@@ -461,11 +524,16 @@ src/
 To create a new release:
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
-GitHub Actions will automatically build binaries for macOS and Linux and create a release.
+GitHub Actions will automatically:
+1. Build binaries for macOS and Linux
+2. Create a GitHub Release with the binaries
+3. Publish to npm (`gtm-cli` and platform-specific packages)
+
+**Note:** Make sure to update the version in `deno.json` before tagging.
 
 ## License
 

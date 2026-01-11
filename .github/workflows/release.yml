@@ -18,12 +18,15 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             binary: gtm-linux-x64
+            npm_package: linux-x64
           - target: x86_64-apple-darwin
             os: macos-latest
             binary: gtm-darwin-x64
+            npm_package: darwin-x64
           - target: aarch64-apple-darwin
             os: macos-latest
             binary: gtm-darwin-arm64
+            npm_package: darwin-arm64
 
     steps:
       - name: Checkout
@@ -87,3 +90,72 @@ jobs:
           draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-npm:
+    name: Publish to npm
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare npm packages
+        run: |
+          # Get version from tag (strip 'v' prefix)
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Publishing version: $VERSION"
+
+          # Update version in all package.json files
+          for pkg in npm/gtm-cli npm/darwin-arm64 npm/darwin-x64 npm/linux-x64; do
+            jq --arg v "$VERSION" '.version = $v' "$pkg/package.json" > "$pkg/package.json.tmp"
+            mv "$pkg/package.json.tmp" "$pkg/package.json"
+          done
+
+          # Update optionalDependencies versions in main package
+          jq --arg v "$VERSION" '.optionalDependencies["@owntag/gtm-cli-darwin-arm64"] = $v | .optionalDependencies["@owntag/gtm-cli-darwin-x64"] = $v | .optionalDependencies["@owntag/gtm-cli-linux-x64"] = $v' npm/gtm-cli/package.json > npm/gtm-cli/package.json.tmp
+          mv npm/gtm-cli/package.json.tmp npm/gtm-cli/package.json
+
+          # Copy binaries to platform packages
+          mkdir -p npm/darwin-arm64/bin npm/darwin-x64/bin npm/linux-x64/bin
+
+          cp artifacts/gtm-darwin-arm64/gtm-darwin-arm64 npm/darwin-arm64/bin/gtm
+          cp artifacts/gtm-darwin-x64/gtm-darwin-x64 npm/darwin-x64/bin/gtm
+          cp artifacts/gtm-linux-x64/gtm-linux-x64 npm/linux-x64/bin/gtm
+
+          # Make binaries executable
+          chmod +x npm/darwin-arm64/bin/gtm
+          chmod +x npm/darwin-x64/bin/gtm
+          chmod +x npm/linux-x64/bin/gtm
+
+          # List package contents for verification
+          echo "=== darwin-arm64 ===" && ls -la npm/darwin-arm64/bin/
+          echo "=== darwin-x64 ===" && ls -la npm/darwin-x64/bin/
+          echo "=== linux-x64 ===" && ls -la npm/linux-x64/bin/
+
+      - name: Publish platform packages
+        run: |
+          cd npm/darwin-arm64 && npm publish --access public || true
+          cd ../darwin-x64 && npm publish --access public || true
+          cd ../linux-x64 && npm publish --access public || true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Wait for platform packages to be available
+        run: sleep 30
+
+      - name: Publish main package
+        run: |
+          cd npm/gtm-cli && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

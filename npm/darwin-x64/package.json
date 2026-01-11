@@ -1,0 +1,14 @@
+{
+  "name": "@owntag/gtm-cli-darwin-x64",
+  "version": "1.1.0",
+  "description": "GTM CLI binary for macOS x64 (Intel)",
+  "os": ["darwin"],
+  "cpu": ["x64"],
+  "author": "owntag",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/owntag/gtm-cli.git"
+  },
+  "preferUnplugged": true
+}

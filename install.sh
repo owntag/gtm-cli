@@ -1,6 +1,9 @@
 #!/bin/bash
 # GTM CLI Installer
 # Usage: curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
+# 
+# Install specific version:
+#   curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash -s -- v1.1.0
 
 set -e
 
@@ -98,14 +101,24 @@ main() {
     
     info "Detected platform: ${OS}-${ARCH}"
     
-    # Get latest version
-    VERSION=$(get_latest_version)
-    
-    if [ -z "$VERSION" ]; then
-        error "Could not determine latest version. Please check https://github.com/owntag/gtm-cli/releases"
+    # Check if version was specified as argument
+    if [ -n "$1" ]; then
+        VERSION="$1"
+        # Ensure version starts with 'v'
+        if [[ ! "$VERSION" =~ ^v ]]; then
+            VERSION="v${VERSION}"
+        fi
+        info "Requested version: ${VERSION}"
+    else
+        # Get latest version
+        VERSION=$(get_latest_version)
+        
+        if [ -z "$VERSION" ]; then
+            error "Could not determine latest version. Please check https://github.com/owntag/gtm-cli/releases"
+        fi
+        
+        info "Latest version: ${VERSION}"
     fi
-    
-    info "Latest version: ${VERSION}"
     
     # Build download URL
     BINARY_NAME="gtm-${OS}-${ARCH}"
