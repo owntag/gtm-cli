@@ -338,7 +338,7 @@ wait
 | Type | Description | Example |
 |------|-------------|---------|
 | `html` | Custom HTML | Pixels, scripts |
-| `cvt_{containerId}_{templateId}` | Custom Template | Stape templates, community templates |
+| `cvt_{containerId}_{templateId}` | Custom Template | Community templates |
 | `ua` | Universal Analytics | UA tags (legacy) |
 | `gaawe` | GA4 Config/Event | GA4 tracking |
 
@@ -376,7 +376,7 @@ gtm templates list
 
 # Output example:
 # Template ID: 26
-# Name: Facebook Pixel by Stape
+# Name: Facebook Pixel
 
 # Step 2: Create tag using cvt_{containerId}_{templateId}
 # Format: cvt_240161374_26 (where 240161374 is container ID, 26 is template ID)
@@ -456,12 +456,12 @@ gtm tags delete --tag-id 27 --force
 #### From File
 ```bash
 # Download template file
-curl -s "https://raw.githubusercontent.com/stape-io/fb-tag/master/template.tpl" \
+curl -s "https://raw.githubusercontent.com/facebookarchive/GoogleTagManager-WebTemplate-For-FacebookPixel/refs/heads/main/template.tpl" \
   -o /tmp/template.tpl
 
 # Import into GTM
 gtm templates create \
-  --name "Facebook Pixel by Stape" \
+  --name "Facebook Pixel" \
   --template-data "$(cat /tmp/template.tpl)"
 ```
 
@@ -712,8 +712,8 @@ gtm triggers create --name "All Pages" --type PAGEVIEW --config '{}' &
 wait
 
 # 5. Import Meta Pixel template
-curl -s "https://raw.githubusercontent.com/stape-io/fb-tag/master/template.tpl" -o /tmp/fb_template.tpl
-gtm templates create --name "Facebook Pixel by Stape" --template-data "$(cat /tmp/fb_template.tpl)"
+curl -s "https://raw.githubusercontent.com/facebookarchive/GoogleTagManager-WebTemplate-For-FacebookPixel/refs/heads/main/template.tpl" -o /tmp/fb_template.tpl
+gtm templates create --name "Facebook Pixel" --template-data "$(cat /tmp/fb_template.tpl)"
 
 # 6. Get template ID and create tag type
 TEMPLATE_ID=$(gtm templates list -o json | jq -r '.[0].templateId')

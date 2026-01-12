@@ -456,15 +456,6 @@ src/
 └── utils/            # Utilities (output, errors, update checker)
 ```
 
-## Releasing
-
-To create a new release:
-
-```bash
-git tag v1.1.0
-git push origin v1.1.0
-```
-
 GitHub Actions will automatically build binaries for macOS and Linux and create a release.
 
 ## License
