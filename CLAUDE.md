@@ -207,8 +207,10 @@ deno task start auth login
 ## Releasing
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git add --all
+git commit -m "New version"
+git tag v1.1.3
+git push origin v1.1.3
 ```
 
 GitHub Actions will:
