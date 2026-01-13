@@ -1,9 +1,7 @@
 /**
- * Service Account and Application Default Credentials (ADC) authentication
+ * Service Account authentication
  *
- * Supports:
- * 1. Service account key file (--service-account flag or GOOGLE_APPLICATION_CREDENTIALS env)
- * 2. Application Default Credentials (gcloud auth application-default login)
+ * Supports service account key file (--service-account flag or GOOGLE_APPLICATION_CREDENTIALS env)
  */
 
 import { google } from "googleapis";
@@ -31,7 +29,7 @@ interface ServiceAccountKey {
  * Stored auth method configuration
  */
 export interface AuthMethodConfig {
-  method: "oauth" | "service-account" | "adc";
+  method: "oauth" | "service-account";
   serviceAccountPath?: string;
   serviceAccountEmail?: string;
 }
@@ -135,40 +133,7 @@ export async function loginWithServiceAccount(
 }
 
 /**
- * Login with Application Default Credentials
- */
-export async function loginWithADC(): Promise<{ email: string }> {
-  // Create auth using ADC
-  const auth = new google.auth.GoogleAuth({
-    scopes: OAUTH_SCOPES,
-  });
-
-  // Test authentication
-  const client = await auth.getClient();
-  await client.getAccessToken();
-
-  // Try to get the service account email if available
-  let email = "Application Default Credentials";
-  try {
-    const credentials = await auth.getCredentials();
-    if (credentials.client_email) {
-      email = credentials.client_email;
-    }
-  } catch {
-    // ADC might not have an email (e.g., user credentials)
-  }
-
-  // Save auth method configuration
-  await saveAuthMethod({
-    method: "adc",
-    serviceAccountEmail: email,
-  });
-
-  return { email };
-}
-
-/**
- * Get an access token from service account or ADC based on the current auth method
+ * Get an access token from service account based on the current auth method
  * Returns null if OAuth should be used instead
  */
 export async function getServiceAccountAccessToken(): Promise<{
@@ -199,53 +164,22 @@ export async function getServiceAccountAccessToken(): Promise<{
     return null;
   }
 
-  switch (authMethod.method) {
-    case "service-account": {
-      if (!authMethod.serviceAccountPath) {
-        throw new Error("Service account path not configured");
-      }
-      await validateServiceAccountKey(authMethod.serviceAccountPath);
-      const auth = new google.auth.GoogleAuth({
-        keyFile: authMethod.serviceAccountPath,
-        scopes: OAUTH_SCOPES,
-      });
-      const client = await auth.getClient();
-      const tokenResponse = await client.getAccessToken();
-      if (!tokenResponse.token) {
-        throw new Error("Failed to get access token from service account");
-      }
-      return { accessToken: tokenResponse.token, method: "service-account" };
+  if (authMethod.method === "service-account") {
+    if (!authMethod.serviceAccountPath) {
+      throw new Error("Service account path not configured");
     }
-
-    case "adc": {
-      const auth = new google.auth.GoogleAuth({
-        scopes: OAUTH_SCOPES,
-      });
-      const client = await auth.getClient();
-      const tokenResponse = await client.getAccessToken();
-      if (!tokenResponse.token) {
-        throw new Error("Failed to get access token from ADC");
-      }
-      return { accessToken: tokenResponse.token, method: "adc" };
-    }
-
-    default:
-      return null;
-  }
-}
-
-/**
- * Check if ADC is available
- */
-export async function isADCAvailable(): Promise<boolean> {
-  try {
+    await validateServiceAccountKey(authMethod.serviceAccountPath);
     const auth = new google.auth.GoogleAuth({
+      keyFile: authMethod.serviceAccountPath,
       scopes: OAUTH_SCOPES,
     });
     const client = await auth.getClient();
-    await client.getAccessToken();
-    return true;
-  } catch {
-    return false;
+    const tokenResponse = await client.getAccessToken();
+    if (!tokenResponse.token) {
+      throw new Error("Failed to get access token from service account");
+    }
+    return { accessToken: tokenResponse.token, method: "service-account" };
   }
+
+  return null;
 }

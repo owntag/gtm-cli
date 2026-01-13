@@ -5,7 +5,7 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 ## Features
 
 - **Full GTM API Coverage** - Manage all GTM resources: accounts, containers, workspaces, tags, triggers, variables, and more
-- **Flexible Authentication** - OAuth, Service Account, or Application Default Credentials
+- **Flexible Authentication** - OAuth or Service Account
 - **Self-Updating** - Built-in upgrade command to stay up to date
 - **AI-Friendly** - Structured JSON output that AI agents can easily parse
 - **Human-Friendly** - Colored output, tables, and progress indicators
@@ -150,24 +150,6 @@ gtm accounts list
 3. Download the JSON key file
 4. Grant the service account access to your GTM containers
 
-### Option 3: Application Default Credentials (ADC)
-
-Best for: **Developers** who already use `gcloud` CLI.
-
-```bash
-# First, set up ADC with gcloud
-gcloud auth application-default login \
-  --scopes=https://www.googleapis.com/auth/tagmanager.edit.containers,https://www.googleapis.com/auth/tagmanager.readonly
-
-# Then tell GTM CLI to use ADC
-gtm auth login --adc
-```
-
-**Benefits:**
-- Uses your personal Google account's quotas
-- Integrates with your existing gcloud workflow
-- No separate credentials to manage
-
 ### Checking Auth Status
 
 ```bash
@@ -191,7 +173,6 @@ Clears stored credentials. For service accounts, only removes the CLI's referenc
 ```bash
 gtm auth login                                # OAuth (browser)
 gtm auth login --service-account <file>       # Service account
-gtm auth login --adc                          # Application Default Credentials
 gtm auth logout                               # Sign out
 gtm auth status                               # Check authentication status
 ```
@@ -449,7 +430,7 @@ deno task check      # Type check
 ```
 src/
 ├── main.ts           # CLI entry point
-├── auth/             # Authentication (OAuth, Service Account, ADC)
+├── auth/             # Authentication (OAuth, Service Account)
 ├── api/              # GTM API client wrapper
 ├── commands/         # CLI command definitions
 ├── config/           # Configuration management

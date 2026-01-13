@@ -31,7 +31,7 @@ src/
 │   ├── mod.ts             # Auth module exports
 │   ├── credentials.ts     # Local credential storage
 │   ├── oauth.ts           # OAuth 2.0 flow implementation
-│   └── service-account.ts # Service account & ADC auth
+│   └── service-account.ts # Service account auth
 ├── api/
 │   ├── mod.ts             # API module exports
 │   └── client.ts          # GTM API client wrapper, type exports
@@ -93,9 +93,8 @@ deno task check      # Type check
 7. Tokens stored in `~/.config/gtm-cli/credentials.json`
 8. Subsequent commands use stored tokens (auto-refresh when expired)
 
-### Alternative Auth Methods
+### Alternative Auth Method
 - **Service Account**: `gtm auth login --service-account /path/to/key.json`
-- **ADC**: `gtm auth login --adc` (uses gcloud credentials)
 
 ## Configuration Files
 
@@ -103,7 +102,7 @@ deno task check      # Type check
 |------|----------|---------|
 | `credentials.json` | `~/.config/gtm-cli/` | OAuth tokens (access, refresh) |
 | `config.json` | `~/.config/gtm-cli/` | User preferences, defaults |
-| `auth-method.json` | `~/.config/gtm-cli/` | Selected auth method (OAuth/SA/ADC) |
+| `auth-method.json` | `~/.config/gtm-cli/` | Selected auth method (OAuth/SA) |
 | `update-check.json` | `~/.config/gtm-cli/` | Last update check time & version |
 
 ## Available Commands

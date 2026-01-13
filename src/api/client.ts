@@ -33,10 +33,10 @@ let lastAccessToken: string | null = null;
 
 /**
  * Get an authenticated Tag Manager API client
- * Supports OAuth, Service Account, and ADC authentication
+ * Supports OAuth and Service Account authentication
  */
 export async function getTagManagerClient(): Promise<TagManager> {
-  // Try service account or ADC first
+  // Try service account first
   const saToken = await getServiceAccountAccessToken();
   
   if (saToken) {

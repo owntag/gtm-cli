@@ -10,9 +10,7 @@ import {
 } from "../auth/oauth.ts";
 import {
   clearAuthMethod,
-  isADCAvailable,
   loadAuthMethod,
-  loginWithADC,
   loginWithServiceAccount,
 } from "../auth/service-account.ts";
 import { error, info, output, success, warn } from "../utils/mod.ts";
@@ -30,7 +28,6 @@ export const authCommand = new Command()
     "-s, --service-account <path:string>",
     "Path to service account key JSON file"
   )
-  .option("--adc", "Use Application Default Credentials (gcloud auth)")
   .action(async (options) => {
     try {
       // Service account authentication
@@ -40,31 +37,6 @@ export const authCommand = new Command()
         success(`Successfully authenticated as ${result.email}`);
         info("Service account credentials are now active.");
         info("Note: Service account uses your own GCP project's API quotas.");
-        return;
-      }
-
-      // ADC authentication
-      if (options.adc) {
-        info("Checking for Application Default Credentials...");
-        
-        if (!(await isADCAvailable())) {
-          error("No Application Default Credentials found.");
-          info("");
-          info("To set up ADC, run:");
-          info("  gcloud auth application-default login");
-          info("");
-          info("Or set GOOGLE_APPLICATION_CREDENTIALS environment variable:");
-          info("  export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json");
-          Deno.exit(1);
-        }
-
-        const result = await loginWithADC();
-        success(`Successfully authenticated using ADC`);
-        if (result.email !== "Application Default Credentials") {
-          info(`  Service account: ${result.email}`);
-        }
-        info("ADC credentials are now active.");
-        info("Note: ADC uses your own GCP project's API quotas.");
         return;
       }
 
@@ -103,14 +75,11 @@ export const authCommand = new Command()
       }
 
       if (authMethod) {
-        // Clear service account or ADC configuration
+        // Clear service account configuration
         await clearAuthMethod();
         if (authMethod.method === "service-account") {
           success(`Cleared service account configuration (${authMethod.serviceAccountEmail})`);
           info("Note: The service account key file was not deleted.");
-        } else if (authMethod.method === "adc") {
-          success("Cleared ADC configuration.");
-          info("Note: gcloud credentials were not revoked. Run 'gcloud auth revoke' to do so.");
         }
       }
 
@@ -172,9 +141,7 @@ export const authCommand = new Command()
           output(statusData, "json");
         } else {
           success("Authenticated");
-          console.log(
-            `  Method: ${authMethod.method === "service-account" ? "Service Account" : "Application Default Credentials"}`
-          );
+          console.log(`  Method: Service Account`);
           if (authMethod.serviceAccountEmail) {
             console.log(`  Account: ${authMethod.serviceAccountEmail}`);
           }
@@ -206,7 +173,6 @@ export const authCommand = new Command()
           console.log("Authentication options:");
           console.log("  gtm auth login                          # OAuth (browser)");
           console.log("  gtm auth login --service-account <file> # Service account");
-          console.log("  gtm auth login --adc                    # Application Default Credentials");
         }
       }
     } catch (err) {
