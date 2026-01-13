@@ -205,12 +205,23 @@ deno task start auth login
 
 ## Releasing
 
+Use the automated release script to bump version, commit, tag, and push:
+
 ```bash
-git add --all
-git commit -m "New version"
-git tag v1.4.0
-git push origin v1.4.0
+deno task release patch    # 1.4.0 -> 1.4.1
+deno task release minor    # 1.4.0 -> 1.5.0
+deno task release major    # 1.4.0 -> 2.0.0
+deno task release 2.0.0    # Set explicit version
 ```
+
+The script will:
+1. Check for uncommitted changes
+2. Update version in `deno.json` (single source of truth)
+3. Commit the change
+4. Create a git tag
+5. Push to origin
+
+**Important:** The version is defined only in `deno.json` and imported by `src/config/constants.ts`. Never manually edit the version in constants.ts.
 
 GitHub Actions will:
 1. Build binaries for macOS (arm64 + x64) and Linux (x64)

@@ -5,6 +5,10 @@
  * For production: The CI build embeds credentials from GitHub secrets
  */
 
+// Import version from deno.json (single source of truth)
+// This gets embedded at compile time for the binary
+import denoConfig from "../../deno.json" with { type: "json" };
+
 // OAuth 2.0 Client Credentials
 // These identify the GTM CLI application to Google
 // __OAUTH_CLIENT_ID__ and __OAUTH_CLIENT_SECRET__ are replaced during CI build
@@ -40,7 +44,7 @@ export const GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke";
 
 // Application info
 export const APP_NAME = "gtm-cli";
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = denoConfig.version;
 export const APP_DESCRIPTION = "Command-line interface for Google Tag Manager";
 
 // Configuration paths
