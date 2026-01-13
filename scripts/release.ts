@@ -87,10 +87,12 @@ async function runOrExit(cmd: string[], errorMsg: string): Promise<string> {
  */
 async function main() {
   const args = Deno.args;
+  const skipConfirm = args.includes("--yes") || args.includes("-y");
+  const filteredArgs = args.filter((a) => a !== "--yes" && a !== "-y");
 
-  if (args.length === 0) {
+  if (filteredArgs.length === 0) {
     console.log(`
-Usage: deno task release <version>
+Usage: deno task release <version> [--yes]
 
 Version can be:
   patch    Bump patch version (1.4.0 -> 1.4.1)
@@ -98,14 +100,17 @@ Version can be:
   major    Bump major version (1.4.0 -> 2.0.0)
   X.Y.Z    Set explicit version (e.g., 2.0.0)
 
+Options:
+  --yes, -y    Skip confirmation prompt
+
 Example:
   deno task release patch
-  deno task release 2.0.0
+  deno task release 2.0.0 --yes
 `);
     Deno.exit(1);
   }
 
-  const versionArg = args[0];
+  const versionArg = filteredArgs[0];
 
   // Check for uncommitted changes
   console.log("🔍 Checking for uncommitted changes...");
@@ -166,10 +171,12 @@ Example:
   console.log(`  4. Push to origin`);
   console.log("");
 
-  const confirm = prompt("Continue? (y/N)");
-  if (confirm?.toLowerCase() !== "y") {
-    console.log("❌ Release cancelled.");
-    Deno.exit(0);
+  if (!skipConfirm) {
+    const confirm = prompt("Continue? (y/N)");
+    if (confirm?.toLowerCase() !== "y") {
+      console.log("❌ Release cancelled.");
+      Deno.exit(0);
+    }
   }
 
   // Update deno.json
