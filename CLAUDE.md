@@ -208,8 +208,8 @@ deno task start auth login
 ```bash
 git add --all
 git commit -m "New version"
-git tag v1.1.3
-git push origin v1.1.3
+git tag v1.4.0
+git push origin v1.4.0
 ```
 
 GitHub Actions will:
