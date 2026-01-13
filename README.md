@@ -443,6 +443,10 @@ GitHub Actions will automatically build binaries for macOS and Linux and create 
 
 MIT License - see [LICENSE](LICENSE) for details.
 
+## Privacy
+
+GTM CLI stores authentication credentials locally on your machine. No data is sent to owntag or any third party — all communication is directly between your machine and Google's APIs. See [PRIVACY.md](PRIVACY.md) for details.
+
 ## Credits
 
 Built by [owntag](https://owntag.eu) - 100% European hosting for Server Side Google Tag Manager.
