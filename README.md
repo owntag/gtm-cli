@@ -33,11 +33,11 @@ Best for CI/CD pipelines with version pinning:
 ```bash
 npm install -g @owntag/gtm-cli
 
-# Or pin to a specific version (1.5.2+ recommended)
-npm install -g @owntag/gtm-cli@1.5.2
+# Or pin to a specific version (1.5.3+ recommended)
+npm install -g @owntag/gtm-cli@1.5.3
 ```
 
-> **Note:** Version 1.5.2 is the first stable npm release. Earlier versions have packaging issues.
+> **Note:** Version 1.5.3 is the first stable npm release. Earlier versions have packaging issues.
 
 ### Manual Download
 
