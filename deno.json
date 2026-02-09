@@ -1,6 +1,6 @@
 {
   "name": "@owntag/gtm-cli",
-  "version": "1.5.5",
+  "version": "1.5.6",
   "exports": "./src/main.ts",
   "tasks": {
     "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-run --watch --env-file src/main.ts",
