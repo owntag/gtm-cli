@@ -26,6 +26,17 @@ curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | ba
 
 > **Note:** Windows is not currently supported. Please use [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install) instead.
 
+### Install via npm
+
+Best for CI/CD pipelines with version pinning:
+
+```bash
+npm install -g @owntag/gtm-cli
+
+# Or pin to a specific version
+npm install -g @owntag/gtm-cli@1.5.0
+```
+
 ### Manual Download
 
 Download the binary for your platform from [Releases](https://github.com/owntag/gtm-cli/releases):
@@ -390,22 +401,20 @@ GTM CLI works great in CI/CD pipelines with service account authentication:
 ```yaml
 # GitHub Actions example
 jobs:
-  deploy-gtm:
+  export-gtm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        
+
       - name: Install GTM CLI
+        run: npm install -g @owntag/gtm-cli@1.5.0
+
+      - name: Export live container
         run: |
-          curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
-          
-      - name: Deploy to GTM
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GTM_SERVICE_ACCOUNT_KEY }}
-        run: |
-          # Create and publish a new version
-          gtm versions create --name "Deploy ${{ github.sha }}" --output json
-          gtm versions publish --version-id $(gtm version-headers list --output json | jq -r '.[0].containerVersionId')
+          echo '${{ secrets.GTM_SERVICE_ACCOUNT_KEY }}' > /tmp/sa-key.json
+          gtm auth login --service-account /tmp/sa-key.json
+          gtm versions live -a ${{ vars.GTM_ACCOUNT_ID }} -c ${{ vars.GTM_CONTAINER_ID }} -o json > container.json
+          rm /tmp/sa-key.json
 ```
 
 ## Development
