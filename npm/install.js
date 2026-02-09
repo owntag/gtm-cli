@@ -41,40 +41,38 @@ function getBinaryName() {
 }
 
 /**
- * Download a file from URL to destination
+ * Download a file from URL to destination, following redirects
  */
 function download(url, dest) {
   return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-
     const request = (url) => {
       https
         .get(url, (response) => {
           // Handle redirects (GitHub releases use redirects)
           if (response.statusCode === 301 || response.statusCode === 302) {
-            file.close();
-            fs.unlinkSync(dest);
             request(response.headers.location);
             return;
           }
 
           if (response.statusCode !== 200) {
-            file.close();
-            fs.unlinkSync(dest);
             reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
             return;
           }
 
+          const file = fs.createWriteStream(dest);
           response.pipe(file);
 
           file.on("finish", () => {
             file.close();
             resolve();
           });
+
+          file.on("error", (err) => {
+            fs.unlink(dest, () => {});
+            reject(err);
+          });
         })
         .on("error", (err) => {
-          file.close();
-          fs.unlink(dest, () => {}); // Delete partial file
           reject(err);
         });
     };
