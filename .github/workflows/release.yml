@@ -104,6 +104,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Extract version from tag
         id: version
@@ -118,3 +119,5 @@ jobs:
       - name: Publish to npm
         working-directory: npm
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ""  # Clear token to allow OIDC authentication
