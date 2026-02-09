@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+/**
+ * GTM CLI wrapper script
+ *
+ * This script runs the downloaded binary. If the binary doesn't exist,
+ * it will attempt to download it first.
+ */
+
+const { spawn, execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+
+const BIN_PATH = path.join(__dirname, "gtm-binary");
+const INSTALL_SCRIPT = path.join(__dirname, "..", "install.js");
+
+// Check if the binary exists
+if (!fs.existsSync(BIN_PATH)) {
+  console.error("GTM CLI binary not found. Running install script...");
+  try {
+    execSync(`node "${INSTALL_SCRIPT}"`, { stdio: "inherit" });
+  } catch (error) {
+    process.exit(1);
+  }
+}
+
+// Run the binary with all arguments
+const child = spawn(BIN_PATH, process.argv.slice(2), {
+  stdio: "inherit",
+});
+
+child.on("close", (code) => {
+  process.exit(code);
+});
+
+child.on("error", (error) => {
+  console.error(`Failed to run GTM CLI: ${error.message}`);
+  process.exit(1);
+});
