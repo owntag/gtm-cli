@@ -206,7 +206,11 @@ Example:
   console.log("");
   console.log(`✅ Successfully released v${newVersion}!`);
   console.log("");
-  console.log("GitHub Actions will now build and publish the release.");
+  console.log("GitHub Actions will now:");
+  console.log("  1. Build binaries for macOS and Linux");
+  console.log("  2. Create a GitHub release");
+  console.log("  3. Publish to npm as @owntag/gtm-cli");
+  console.log("");
   console.log(`Check progress at: https://github.com/owntag/gtm-cli/actions`);
 }
 

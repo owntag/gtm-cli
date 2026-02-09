@@ -227,3 +227,49 @@ GitHub Actions will:
 1. Build binaries for macOS (arm64 + x64) and Linux (x64)
 2. Embed OAuth credentials from secrets
 3. Create GitHub Release with binaries attached
+4. Publish to npm as `@owntag/gtm-cli`
+
+## npm Publishing
+
+The CLI is published to npm as `@owntag/gtm-cli` for easy installation and version pinning:
+
+```bash
+# Install globally
+npm install -g @owntag/gtm-cli
+
+# Or use with npx
+npx @owntag/gtm-cli --help
+
+# Pin to specific version in CI/CD
+npm install -g @owntag/gtm-cli@1.5.0
+```
+
+### npm Package Structure
+
+The `npm/` directory contains the npm package:
+- `package.json` - Package metadata and scripts
+- `install.js` - Postinstall script that downloads the correct binary
+- `bin/gtm` - Wrapper script that runs the binary
+- `README.md` - npm package documentation
+
+### npm Trusted Publishing Setup
+
+npm uses OIDC trusted publishing (no tokens needed). One-time setup on npmjs.com:
+
+1. **First publish**: Manually publish the package once to create it on npm:
+   ```bash
+   cd npm
+   npm publish --access public
+   ```
+   (You'll need to `npm login` first)
+
+2. **Configure trusted publisher** on npmjs.com:
+   - Go to https://www.npmjs.com/package/@owntag/gtm-cli/access
+   - Click "Add trusted publisher" → "GitHub Actions"
+   - Fill in:
+     - Organization/user: `owntag`
+     - Repository: `gtm-cli`
+     - Workflow filename: `release.yml`
+   - Click "Set up connection"
+
+After this, all future releases will automatically publish via OIDC - no secrets required.

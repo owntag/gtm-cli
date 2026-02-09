@@ -5,6 +5,7 @@ node_modules/
 dist/
 gtm
 gtm.exe
+npm/bin/gtm-binary
 
 # Environment files
 .env

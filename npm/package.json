@@ -1,0 +1,45 @@
+{
+  "name": "@owntag/gtm-cli",
+  "version": "1.5.0",
+  "description": "Command-line interface for Google Tag Manager",
+  "keywords": [
+    "google-tag-manager",
+    "gtm",
+    "cli",
+    "google",
+    "tag-manager",
+    "analytics"
+  ],
+  "homepage": "https://github.com/owntag/gtm-cli",
+  "bugs": {
+    "url": "https://github.com/owntag/gtm-cli/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/owntag/gtm-cli.git"
+  },
+  "license": "MIT",
+  "author": "owntag GmbH",
+  "bin": {
+    "gtm": "bin/gtm"
+  },
+  "files": [
+    "bin",
+    "install.js",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
