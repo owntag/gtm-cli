@@ -304,6 +304,8 @@ gtm versions set-latest --version-id 42
 gtm version-headers list                       # List all versions (lightweight)
 ```
 
+`versions create` creates a version from a workspace. `versions publish` publishes an existing container version by `--version-id` and does not accept `--workspace-id`. For safe automation, inspect `workspaces status`, create a version, keep the created version JSON, then publish the reviewed version ID with `--fingerprint` when available.
+
 ### Other Resources
 
 ```bash
