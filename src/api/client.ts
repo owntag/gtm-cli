@@ -75,6 +75,17 @@ export async function getTagManagerClient(): Promise<TagManager> {
 }
 
 /**
+ * Get the active access token (OAuth or Service Account)
+ */
+export async function getAuthToken(): Promise<string> {
+  const saToken = await getServiceAccountAccessToken();
+  if (saToken) {
+    return saToken.accessToken;
+  }
+  return await getAccessToken();
+}
+
+/**
  * Helper to build parent path for GTM API
  */
 export function buildPath(parts: {

@@ -3,7 +3,7 @@
  */
 
 import { Command } from "@cliffy/command";
-import { getTagManagerClient, paginateAll, CustomTemplate } from "../api/mod.ts";
+import { getTagManagerClient, getAuthToken, paginateAll, CustomTemplate } from "../api/mod.ts";
 import { getEffectiveValue } from "../config/store.ts";
 import { handleError, output, OutputFormat, success, requireOptions } from "../utils/mod.ts";
 
@@ -94,7 +94,7 @@ export const templatesCommand = new Command()
       const workspaceId = await getEffectiveValue(options.workspaceId, "defaultWorkspaceId");
       requireOptions({ accountId, containerId, workspaceId }, ["accountId", "containerId", "workspaceId"]);
 
-      const tagmanager = await getTagManagerClient();
+      const token = await getAuthToken();
 
       const requestBody: Record<string, unknown> = {
         name: options.name,
@@ -109,13 +109,26 @@ export const templatesCommand = new Command()
         Object.assign(requestBody, config);
       }
 
-      const response = await tagmanager.accounts.containers.workspaces.templates.create({
-        parent: `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`,
-        requestBody,
+      // Native Deno fetch to prevent Node https compat streams hanging on large payloads (PMTUD blackhole)
+      const url = `https://tagmanager.googleapis.com/tagmanager/v2/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/templates`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
 
-      success(`Template created: ${response.data.templateId}`);
-      output(response.data, options.output as OutputFormat);
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Google API GFE Error (${response.status}): ${errText}`);
+      }
+
+      const resData = await response.json();
+
+      success(`Template created: ${resData.templateId}`);
+      output(resData, options.output as OutputFormat);
     } catch (err) {
       handleError(err);
     }
@@ -141,6 +154,7 @@ export const templatesCommand = new Command()
       const workspaceId = await getEffectiveValue(options.workspaceId, "defaultWorkspaceId");
       requireOptions({ accountId, containerId, workspaceId }, ["accountId", "containerId", "workspaceId"]);
 
+      const token = await getAuthToken();
       const tagmanager = await getTagManagerClient();
 
       // Get current template if fingerprint not provided
@@ -160,14 +174,26 @@ export const templatesCommand = new Command()
         Object.assign(requestBody, config);
       }
 
-      const response = await tagmanager.accounts.containers.workspaces.templates.update({
-        path: `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/templates/${options.templateId}`,
-        fingerprint,
-        requestBody,
+      // Native Deno fetch to prevent Node https compat streams hanging on large payloads (PMTUD blackhole)
+      const url = `https://tagmanager.googleapis.com/tagmanager/v2/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/templates/${options.templateId}?fingerprint=${fingerprint || ""}`;
+      const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
 
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Google API GFE Error (${response.status}): ${errText}`);
+      }
+
+      const resData = await response.json();
+
       success("Template updated successfully");
-      output(response.data, options.output as OutputFormat);
+      output(resData, options.output as OutputFormat);
     } catch (err) {
       handleError(err);
     }
