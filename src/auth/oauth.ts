@@ -371,7 +371,11 @@ async function openBrowser(url: string): Promise<void> {
       cmd = ["xdg-open", url];
       break;
     case "windows":
-      cmd = ["cmd", "/c", "start", url];
+      // Don't use `cmd /c start`: cmd.exe treats `&` in the URL as a command
+      // separator and truncates the auth URL at the first `&`, dropping
+      // response_type/scope/etc. rundll32 receives the URL as a single arg
+      // without any shell re-parsing.
+      cmd = ["rundll32", "url.dll,FileProtocolHandler", url];
       break;
     default:
       console.log(`Please open this URL in your browser:\n${url}`);

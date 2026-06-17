@@ -24,7 +24,7 @@ A powerful command-line interface for Google Tag Manager. Manage your GTM resour
 curl -fsSL https://raw.githubusercontent.com/owntag/gtm-cli/main/install.sh | bash
 ```
 
-> **Note:** Windows is not currently supported. Please use [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install) instead.
+> **Windows:** Native Windows is supported via [npm](#install-via-npm) or by downloading the `gtm-windows-x64.exe` binary (see [Manual Download](#manual-download)). The `curl | bash` quick-install above requires a Unix-like shell, so on Windows use it through [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install).
 
 ### Install via npm
 
@@ -46,6 +46,7 @@ Download the binary for your platform from [Releases](https://github.com/owntag/
 | macOS (Apple Silicon) | `gtm-darwin-arm64` |
 | macOS (Intel) | `gtm-darwin-x64` |
 | Linux (x64) | `gtm-linux-x64` |
+| Windows (x64) | `gtm-windows-x64.exe` |
 
 ```bash
 # Example for macOS Apple Silicon
@@ -467,7 +468,7 @@ src/
 └── utils/            # Utilities (output, errors, update checker)
 ```
 
-GitHub Actions will automatically build binaries for macOS and Linux and create a release.
+GitHub Actions will automatically build binaries for macOS, Linux, and Windows and create a release.
 
 ## License
 

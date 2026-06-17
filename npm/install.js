@@ -14,7 +14,8 @@ const { execSync } = require("child_process");
 
 const REPO = "owntag/gtm-cli";
 const BIN_DIR = path.join(__dirname, "bin");
-const BIN_PATH = path.join(BIN_DIR, "gtm-binary");
+const BIN_NAME = process.platform === "win32" ? "gtm-binary.exe" : "gtm-binary";
+const BIN_PATH = path.join(BIN_DIR, BIN_NAME);
 
 /**
  * Get the binary name for the current platform
@@ -33,10 +34,14 @@ function getBinaryName() {
     if (arch === "x64") {
       return "gtm-linux-x64";
     }
+  } else if (platform === "win32") {
+    if (arch === "x64") {
+      return "gtm-windows-x64.exe";
+    }
   }
 
   throw new Error(
-    `Unsupported platform: ${platform}-${arch}. GTM CLI supports darwin-x64, darwin-arm64, and linux-x64.`
+    `Unsupported platform: ${platform}-${arch}. GTM CLI supports darwin-x64, darwin-arm64, linux-x64, and windows-x64.`
   );
 }
 
@@ -104,8 +109,10 @@ async function main() {
   try {
     await download(downloadUrl, BIN_PATH);
 
-    // Make binary executable
-    fs.chmodSync(BIN_PATH, 0o755);
+    // Make binary executable (no-op on Windows)
+    if (process.platform !== "win32") {
+      fs.chmodSync(BIN_PATH, 0o755);
+    }
 
     console.log("GTM CLI installed successfully!");
   } catch (error) {
