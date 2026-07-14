@@ -110,7 +110,7 @@ export const containersCommand = new Command()
   .option("-a, --account-id <id:string>", "GTM Account ID")
   .option("-c, --container-id <id:string>", "GTM Container ID", { required: true })
   .option("-n, --name <name:string>", "New container name")
-  .option("--domain <domain:string>", "Target domain (comma-separated for multiple)")
+  .option("--domain <domain:string>", "Unsupported legacy option for existing containers")
   .option("--fingerprint <fingerprint:string>", "Container fingerprint for concurrency control")
   .option("-o, --output <format:string>", "Output format (json, table, compact)", {
     default: "table",
@@ -127,12 +127,14 @@ export const containersCommand = new Command()
         path: `accounts/${accountId}/containers/${options.containerId}`,
       });
 
-      const requestBody: Record<string, unknown> = {};
+      const requestBody: Record<string, unknown> = { ...current.data };
       if (options.name) {
         requestBody.name = options.name;
       }
       if (options.domain) {
-        requestBody.domainName = options.domain.split(",").map((d: string) => d.trim());
+        throw new Error(
+          "Google Tag Manager does not support changing domainName on an existing container",
+        );
       }
 
       const response = await tagmanager.accounts.containers.update({
