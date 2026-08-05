@@ -22,7 +22,7 @@
     "@std/path": "jsr:@std/path@^1",
     "@std/fs": "jsr:@std/fs@^1",
     "@std/fmt": "jsr:@std/fmt@^1",
-    "googleapis": "npm:googleapis@^144"
+    "googleapis": "npm:googleapis@^174"
   },
   "compilerOptions": {
     "strict": true,
