@@ -6,6 +6,44 @@ import { google, type tagmanager_v2 } from "googleapis";
 import { getAccessToken } from "../auth/oauth.ts";
 import { getServiceAccountAccessToken } from "../auth/service-account.ts";
 
+const GTM_REQUEST_DELAY_MS = 4100;
+
+// Retries would bypass the rate limiter and make request counts unpredictable.
+google.options({ retry: false });
+
+/** Wait before a GTM API request to stay below 25 requests per 100 seconds. */
+export async function waitForGtmQuota(): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, GTM_REQUEST_DELAY_MS));
+}
+
+/** Apply the quota delay to every method on the generated GTM API client. */
+function withQuotaDelay<T extends object>(target: T, cache = new WeakMap<object, object>()): T {
+  const cached = cache.get(target);
+  if (cached) return cached as T;
+
+  const proxy = new Proxy({} as T, {
+    get(_object, property) {
+      const value = Reflect.get(target, property, target);
+
+      if (typeof value === "function") {
+        return async (...args: unknown[]) => {
+          await waitForGtmQuota();
+          return Reflect.apply(value, target, args);
+        };
+      }
+
+      if (value !== null && typeof value === "object") {
+        return withQuotaDelay(value, cache);
+      }
+
+      return value;
+    },
+  });
+
+  cache.set(target, proxy);
+  return proxy;
+}
+
 // Re-export useful types
 export type TagManager = tagmanager_v2.Tagmanager;
 export type Account = tagmanager_v2.Schema$Account;
@@ -38,19 +76,20 @@ let lastAccessToken: string | null = null;
 export async function getTagManagerClient(): Promise<TagManager> {
   // Try service account first
   const saToken = await getServiceAccountAccessToken();
-  
+
   if (saToken) {
     // Return cached client if token hasn't changed
     if (cachedClient && lastAccessToken === saToken.accessToken) {
       return cachedClient;
     }
-    
-    cachedClient = google.tagmanager({
+
+    const client = google.tagmanager({
       version: "v2",
       headers: {
         Authorization: `Bearer ${saToken.accessToken}`,
       },
     });
+    cachedClient = withQuotaDelay(client);
     lastAccessToken = saToken.accessToken;
     return cachedClient;
   }
@@ -63,12 +102,13 @@ export async function getTagManagerClient(): Promise<TagManager> {
     return cachedClient;
   }
 
-  cachedClient = google.tagmanager({
+  const client = google.tagmanager({
     version: "v2",
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
   });
+  cachedClient = withQuotaDelay(client);
 
   lastAccessToken = accessToken;
   return cachedClient;
@@ -176,9 +216,17 @@ export async function paginateAll<T>(
   resultKey: string
 ): Promise<T[]> {
   const allResults: T[] = [];
+  const seenPageTokens = new Set<string>();
   let pageToken: string | undefined;
 
   do {
+    if (pageToken) {
+      if (seenPageTokens.has(pageToken)) {
+        throw new Error("Google API returned a repeated page token");
+      }
+      seenPageTokens.add(pageToken);
+    }
+
     const response = await listFn(pageToken);
     const items = response.data[resultKey] as T[] | undefined;
 

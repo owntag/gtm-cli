@@ -3,7 +3,7 @@
  */
 
 import { Command } from "@cliffy/command";
-import { getTagManagerClient, getAuthToken, paginateAll, CustomTemplate } from "../api/mod.ts";
+import { getTagManagerClient, getAuthToken, paginateAll, CustomTemplate, waitForGtmQuota } from "../api/mod.ts";
 import { getEffectiveValue } from "../config/store.ts";
 import { handleError, output, OutputFormat, success, requireOptions } from "../utils/mod.ts";
 
@@ -111,6 +111,7 @@ export const templatesCommand = new Command()
 
       // Native Deno fetch to prevent Node https compat streams hanging on large payloads (PMTUD blackhole)
       const url = `https://tagmanager.googleapis.com/tagmanager/v2/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/templates`;
+      await waitForGtmQuota();
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -176,6 +177,7 @@ export const templatesCommand = new Command()
 
       // Native Deno fetch to prevent Node https compat streams hanging on large payloads (PMTUD blackhole)
       const url = `https://tagmanager.googleapis.com/tagmanager/v2/accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/templates/${options.templateId}?fingerprint=${fingerprint || ""}`;
+      await waitForGtmQuota();
       const response = await fetch(url, {
         method: "PATCH",
         headers: {
