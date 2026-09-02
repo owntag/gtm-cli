@@ -127,7 +127,22 @@ export const containersCommand = new Command()
         path: `accounts/${accountId}/containers/${options.containerId}`,
       });
 
-      const requestBody: Record<string, unknown> = {};
+      // containers.update replaces the whole Container resource rather than patching it, so
+      // the body has to carry the fields we are not changing. Sending only the changed ones
+      // fails on the required field:
+      //   container.usageContext: Container field is empty or missing.
+      // Seeding from the container we just fetched also stops an update to one field silently
+      // clearing the others.
+      const requestBody: Record<string, unknown> = {
+        name: current.data.name,
+        usageContext: current.data.usageContext,
+      };
+      if (current.data.domainName) {
+        requestBody.domainName = current.data.domainName;
+      }
+      if (current.data.notes) {
+        requestBody.notes = current.data.notes;
+      }
       if (options.name) {
         requestBody.name = options.name;
       }
