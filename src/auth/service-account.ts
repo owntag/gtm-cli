@@ -143,7 +143,6 @@ export async function getServiceAccountAccessToken(): Promise<{
   // Check for GOOGLE_APPLICATION_CREDENTIALS env var first
   const envKeyPath = Deno.env.get("GOOGLE_APPLICATION_CREDENTIALS");
   if (envKeyPath) {
-    await validateServiceAccountKey(envKeyPath);
     const auth = new google.auth.GoogleAuth({
       keyFile: envKeyPath,
       scopes: OAUTH_SCOPES,
