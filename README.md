@@ -164,8 +164,9 @@ Best for: **CI/CD pipelines**, **automation**, and **organizations** who want to
 # Login with a service account key file
 gtm auth login --service-account /path/to/service-account-key.json
 
-# Or use the standard Google environment variable
-export GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
+# Or use the standard Google environment variable (supports service account keys,
+# Workload Identity Federation configs, and service account impersonation)
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/credentials.json
 gtm accounts list
 ```
 
@@ -173,6 +174,7 @@ gtm accounts list
 - Uses your own GCP project's API quotas
 - No interactive browser login required
 - Perfect for CI/CD and automation
+- Supports keyless authentication via Workload Identity Federation (WIF) and service account impersonation
 - Your organization controls the credentials
 
 **Setup:**
