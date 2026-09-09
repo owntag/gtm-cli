@@ -169,6 +169,37 @@ EOF
 gtm variables create --name "DLV - Currency" --type v --config "$(cat /tmp/config.json)"
 ```
 
+### 4. Safe Versioning & Publishing
+
+Publishing changes the live container. For AI agents and CI jobs, treat it as a production write and separate workspace review from version publish.
+
+```bash
+# 1. Inspect the current live version and pending workspace changes
+gtm versions live -o json
+gtm workspaces status -o json
+
+# 2. Create a version from the current/default workspace
+gtm versions create \
+  --name "Release $(date +%Y-%m-%d)" \
+  --notes "Describe the intended GTM changes" \
+  -o json > /tmp/gtm-version.json
+
+# 3. Capture the created version ID and optional fingerprint
+VERSION_ID=$(jq -r '.containerVersion.containerVersionId' /tmp/gtm-version.json)
+FINGERPRINT=$(jq -r '.containerVersion.fingerprint // empty' /tmp/gtm-version.json)
+
+# 4. Publish the container version by version ID
+gtm versions publish --version-id "$VERSION_ID" --fingerprint "$FINGERPRINT"
+```
+
+**Critical**: `gtm versions create` is workspace-scoped, but `gtm versions publish` is version-scoped. Do not pass `--workspace-id` to `versions publish`; publish only the specific `--version-id` you just reviewed or created.
+
+**Agent Safety Checklist**:
+1. Use a dedicated workspace for automated changes.
+2. Run `gtm workspaces status -o json` before creating a version.
+3. Keep the created version JSON as an audit artifact.
+4. Publish with `--version-id` and `--fingerprint` when a fingerprint is available.
+
 ---
 
 ## Variables

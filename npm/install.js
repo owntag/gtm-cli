@@ -10,7 +10,6 @@
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const { execSync } = require("child_process");
 
 const REPO = "owntag/gtm-cli";
 const BIN_DIR = path.join(__dirname, "bin");
