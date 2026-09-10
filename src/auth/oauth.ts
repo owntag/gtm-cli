@@ -75,7 +75,7 @@ async function exchangeCodeForTokens(code: string): Promise<TokenResponse> {
     },
     body: new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
+      client_secret: (GOOGLE_CLIENT_SECRET),
       code: code,
       grant_type: "authorization_code",
       redirect_uri: OAUTH_REDIRECT_URI,
@@ -101,7 +101,7 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> 
     },
     body: new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,
-      client_secret: GOOGLE_CLIENT_SECRET,
+      client_secret: (GOOGLE_CLIENT_SECRET),
       refresh_token: refreshToken,
       grant_type: "refresh_token",
     }),
@@ -258,7 +258,7 @@ export async function login(): Promise<StoredCredentials> {
 
   // Create credentials object
   const credentials: StoredCredentials = {
-    accessToken: tokens.access_token,
+    accessToken: (tokens.access_token),
     refreshToken: tokens.refresh_token || "",
     expiresAt,
     tokenType: tokens.token_type,
@@ -321,7 +321,7 @@ export async function getAccessToken(): Promise<string> {
   // Update stored credentials
   const updatedCredentials: StoredCredentials = {
     ...credentials,
-    accessToken: tokens.access_token,
+    accessToken: (tokens.access_token),
     expiresAt: Date.now() + tokens.expires_in * 1000,
     // Keep existing refresh token if new one not provided
     refreshToken: tokens.refresh_token || credentials.refreshToken,

@@ -153,7 +153,7 @@ export async function getServiceAccountAccessToken(): Promise<{
     if (!tokenResponse.token) {
       throw new Error("Failed to get access token from service account");
     }
-    return { accessToken: tokenResponse.token, method: "service-account" };
+    return { accessToken: (tokenResponse.token), method: "service-account" };
   }
 
   // Check saved auth method
@@ -178,7 +178,7 @@ export async function getServiceAccountAccessToken(): Promise<{
     if (!tokenResponse.token) {
       throw new Error("Failed to get access token from service account");
     }
-    return { accessToken: tokenResponse.token, method: "service-account" };
+    return { accessToken: (tokenResponse.token), method: "service-account" };
   }
 
   return null;
