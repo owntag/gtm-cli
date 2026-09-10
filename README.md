@@ -444,7 +444,7 @@ jobs:
 
 ### Prerequisites
 
-- [Deno](https://deno.land/) 2.0+
+- [Deno](https://deno.com/) 2.0+
 
 ### Commands
 

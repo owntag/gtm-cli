@@ -83,7 +83,7 @@ We may update this privacy policy from time to time. Changes will be reflected i
 If you have questions about this privacy policy or GTM CLI's data practices, please contact:
 
 **owntag GmbH**  
-Email: mail@owntag.eu  
+Email: privacy@example.com  
 Website: https://www.owntag.eu
 
 ---
