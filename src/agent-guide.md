@@ -2,16 +2,17 @@
 
 ## Table of Contents
 1. [Quick Start](#quick-start)
-2. [Core Concepts](#core-concepts)
-3. [Configuration Management](#configuration-management)
-4. [Common Workflows](#common-workflows)
-5. [Variables](#variables)
-6. [Triggers](#triggers)
-7. [Tags](#tags)
-8. [Custom Templates](#custom-templates)
-9. [Performance Optimization](#performance-optimization)
-10. [Troubleshooting](#troubleshooting)
-11. [Complete Examples](#complete-examples)
+2. [Local Workspaces (recommended for anything beyond a single change)](#local-workspaces)
+3. [Core Concepts](#core-concepts)
+4. [Configuration Management](#configuration-management)
+5. [Common Workflows](#common-workflows)
+6. [Variables](#variables)
+7. [Triggers](#triggers)
+8. [Tags](#tags)
+9. [Custom Templates](#custom-templates)
+10. [Performance Optimization](#performance-optimization)
+11. [Troubleshooting](#troubleshooting)
+12. [Complete Examples](#complete-examples)
 
 ---
 
@@ -41,6 +42,122 @@ gtm config set defaultWorkspaceId 2
 ```bash
 gtm config get
 ```
+
+---
+
+## Local Workspaces
+
+**Use `gtm local` whenever you make more than one or two changes, or touch several containers.** It gives you a full copy of a GTM workspace as JSON files on disk. You write files (fast, no API calls, no rate limits), the CLI validates everything instantly and deterministically, and one `gtm local push` uploads all changes. The human then reviews and publishes in the GTM UI unless they gave other instructions.
+
+### Workflow
+
+```bash
+# 1. Pull (once per container). Creates ./<GTM-public-id>/ with one JSON file per entity.
+gtm local init --account-id 123456 --container-id 789012 --dir web
+gtm local init --account-id 123456 --container-id 345678 --dir server   # e.g. the matching server container
+
+# 2. Look around (fast, offline)
+gtm local tags list --dir web -o json
+gtm local tags get "GA4 - page_view" --dir web --simple     # parameters in readable key/value form
+cat web/tags/*.json                                          # the files ARE the workspace
+
+# 3. Change things - either with commands (validated before the file is written) ...
+gtm local variables add --dir web --name "GA4 ID" --type c --value G-ABC123
+gtm local triggers add --dir web --name "event.purchase" --event purchase
+gtm local tags add --dir web --name "GA4 - purchase" --type gaawe \
+  --param eventName=purchase --param "measurementIdOverride={{GA4 ID}}" \
+  --param sendEcommerceData:boolean=true --trigger event.purchase
+gtm local tags set --dir web "GA4 - purchase" --param eventName=purchase_v2 --add-trigger "All Pages"
+
+# ... or by writing JSON files directly (validate afterwards)
+cat > web/tags/GA4\ -\ add_to_cart.json << 'EOF'
+{
+  "name": "GA4 - add_to_cart",
+  "type": "gaawe",
+  "parameter": { "eventName": "add_to_cart", "measurementIdOverride": "{{GA4 ID}}", "sendEcommerceData": true },
+  "firingTriggerId": ["event.add_to_cart"]
+}
+EOF
+
+# 4. Validate and review. Fix every error before pushing; read the warnings.
+gtm local validate --dir web -o json
+gtm local status --dir .          # all workspaces below the current folder
+gtm local diff --dir web          # field-level diff vs the remote workspace
+gtm local diff --dir web --against live
+
+# 5. Upload. Nothing is published - the human publishes in GTM.
+gtm local push --dir web --dry-run
+gtm local push --dir web -o json
+```
+
+`--dir` can be omitted when the current directory is inside a workspace. Every command prints dense JSON when its output is piped (or with `-o json`) and human-readable text on a terminal. In JSON mode nothing else is printed (no progress lines), so `2>&1 | jq` is safe. When a command covers exactly one workspace the JSON is a single object; with several workspaces (`--dir` pointing at a parent folder) it is an array.
+
+`gtm local status -o json` returns `{root, workspaceId, workspaceUrl, container, pulledAt, liveVersion, summary:{added,modified,deleted}, changes:[...], summaryVsLive, unpublishedRemoteChanges, validation:{ok,errors,warnings,issues}}`. `push -o json` returns `{ok, workspaceUrl, operations, results:[{op,kind,name,ok,id,error,drift}]}`; give the user the `workspaceUrl` for review.
+
+### File format
+
+A file is the GTM API representation of the entity (what `gtm tags get -o json` returns) without read-only fields. Copy the structure of an existing file of the same type when in doubt.
+
+```json
+{
+  "tagId": "23",
+  "name": "GA4 - page_view",
+  "type": "gaawe",
+  "firingTriggerId": ["2147479553"],
+  "parameter": [
+    { "type": "template", "key": "eventName", "value": "page_view" },
+    { "type": "template", "key": "measurementIdOverride", "value": "{{GA4 ID}}" },
+    { "type": "boolean", "key": "sendEcommerceData", "value": "false" }
+  ]
+}
+```
+
+Rules and conveniences:
+
+- **IDs**: files pulled from GTM carry `tagId` / `triggerId` / `variableId` / ... Never invent IDs. New files have no ID; GTM assigns one on push and the CLI writes it back.
+- **Parameters** may be written in the **simplified notation** as an object: strings become `template`, JSON booleans `boolean`, whole numbers `integer`, arrays `list`, objects `map`:
+  ```json
+  "parameter": {
+    "eventName": "purchase",
+    "sendEcommerceData": true,
+    "eventSettingsTable": [ { "parameter": "send_page_view", "parameterValue": "false" } ]
+  }
+  ```
+  Files written by the CLI always use the canonical GTM array form; both forms are accepted everywhere.
+- **Triggers are referenced by name or ID** in `firingTriggerId` / `blockingTriggerId`: `["event.purchase", "All Pages"]`. Built-in triggers: web containers have `All Pages` (2147479553), `Initialization - All Pages` (2147479573) and `Consent Initialization - All Pages` (2147479572); server containers have `All Pages` (2147479574).
+- **Variables are referenced as `{{Variable Name}}`** inside values (GTM's own syntax), **tags by name** in `setupTag` / `teardownTag`, **folders by name or ID** in `parentFolderId`.
+- **Conditions** (trigger `filter`, `customEventFilter`, `autoEventFilter`) may be simplified: `{ "type": "equals", "arg0": "{{_event}}", "arg1": "purchase" }` (also `"negate": true`; `ignore_case` only works with `matchRegex`). Valid types: equals, contains, startsWith, endsWith, matchRegex, greater, greaterOrEquals, less, lessOrEquals, cssSelector, urlMatches.
+- **Enum casing** from container exports (`"TEMPLATE"`, `"CUSTOM_EVENT"`, `"ONCE_PER_EVENT"`) is accepted and normalized to the API form (`template`, `customEvent`, `oncePerEvent`).
+- **Built-in variables** live in `built-in-variables.json`; enable them with `gtm local built-in-variables enable pageUrl clickText` before referencing `{{Page URL}}` / `{{Click Text}}`.
+- **Custom templates**: reference a template **by name** with `"template": "Facebook Pixel by Stape"` instead of `"type"` (works for tags, variables and clients, also before the template has been pushed; the CLI resolves it to the `cvt_...` type id on push, so templates and the entities using them go out in one push). Pulled entities carry the resolved form: `"type": "cvt_<galleryTemplateId>"` (gallery-imported) or `"type": "cvt_<containerId>_<templateId>"`. `gtm local templates params <ref>` lists a template's parameters (name, wire type, required, options, enabling conditions); the validator checks your parameters against those definitions.
+- **Adding templates**: `gtm local templates add --gallery stape-io/fb-tag` downloads the newest *published* gallery version (from `metadata.yaml`, not HEAD) of a community template; `--template-file x.tpl` imports a local export. API-created templates are always plain custom templates: `galleryReference` is rejected by the API on create (validation reports `GALLERY_REFERENCE_ON_CREATE`), so they do not get gallery update notices. Only the GTM UI can add a gallery-linked template. Never remove `galleryReference` from a *pulled* gallery template: pushing it without the field detaches it from the gallery (validation warns).
+- **Server containers** use `customEvent` and `always` triggers (no `pageview`), the variable types `ed` (Event Data: `keyPath`), `qp`, `rh`, `c`, `smm`, `remm`, and tag types such as `sgtmgaaw`, `sgtmadsct`. Web-only types are rejected by validation.
+- **Renaming**: `gtm local variables set "Old" --name "New"` updates `{{Old}}` references in all files (same for triggers, tags, folders). Do not rename by editing files manually unless you also update references.
+- **Deleting**: delete the file (or `gtm local tags rm <name>`); the remote entity is deleted on the next push. `rm` refuses while other entities still reference it.
+
+### Reading validation output
+
+```json
+{ "severity": "error", "code": "TRIGGER_NOT_FOUND", "file": "tags/GA4 - purchase.json",
+  "path": "firingTriggerId[0]", "message": "... references trigger \"event.purchas\", which does not exist ...",
+  "hint": "Use the name or ID of a trigger in triggers/ ... Did you mean \"event.purchase\"?" }
+```
+
+- `error` = GTM would reject it; `push` refuses until fixed. `warning` = GTM accepts it but it is almost certainly a mistake (an unknown parameter key is **silently dropped** by GTM; a `{{variable}}` that does not exist evaluates to undefined).
+- `file` + `path` tell you exactly where; `hint` tells you how to fix it. Fix and re-run `gtm local validate -o json` - it takes milliseconds.
+- `add`/`set` refuse to write a file with errors (use `--force` to write anyway, e.g. when you will create the referenced trigger next).
+
+### Push semantics
+
+- `push` = validate → fetch remote → detect conflicts → plan → execute → write back IDs → refresh snapshots. Order is dependency-safe (folders, templates, triggers, variables, clients, transformations, tags, zones; deletions reversed, dependents first).
+- **Conflicts**: if an entity changed remotely since your last pull *and* locally, push stops and lists the conflicts. Resolve with `gtm local pull --force` (take remote) or `gtm local push --force` (take local).
+- **Drift**: if GTM stores an entity differently than requested (it drops unknown parameters), push reports exactly what changed and updates the local file to match, so `status` is clean afterwards.
+- Rate limits (HTTP 429) are retried automatically with backoff. Entities created remotely since your pull are left alone; run `gtm local pull` afterwards to get them.
+- Nothing is published. Tell the user to review the workspace in GTM (the push output prints the URL) and publish.
+
+### Watching an agent work
+
+`gtm local ui` starts a local, read-only web UI styled like GTM that shows every entity, the diff vs remote/live and all validation issues, refreshing every two seconds while files change.
 
 ---
 
@@ -664,120 +781,55 @@ gtm triggers list | grep "Trigger ID"
 
 ## Complete Examples
 
-### Example 1: GA4 Ecommerce Setup with Meta Pixel
+### Example 1: GA4 ecommerce events + Meta Pixel, with a local workspace
 
 ```bash
 #!/bin/bash
+set -e
 
-# 1. Setup
-gtm config set defaultAccountId 2596355618
-gtm config set defaultContainerId 240161374
-gtm config set defaultWorkspaceId 2
+# 1. Pull the web container once (creates ./web/ with one JSON file per entity)
+gtm local init --account-id 2596355618 --container-id 240161374 --dir web
+cd web
 
-# 2. Create constant variable for Pixel ID
-gtm variables create \
-  --name "Meta Pixel ID" \
-  --type c \
-  --config '{
-    "parameter": [{
-      "type": "TEMPLATE",
-      "key": "value",
-      "value": "YOUR_PIXEL_ID"
-    }]
-  }'
+# 2. Look at what exists (offline)
+gtm local tags list -o json | jq -r '.[] | [.name, .type, .triggers] | @tsv'
+gtm local built-in-variables list
 
-# 3. Create data layer variables in parallel
-gtm variables create --name "DLV - ecommerce.currency" --type v \
-  --config '{"parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"ecommerce.currency"}]}' &
+# 3. Import the Meta Pixel template from the gallery (newest published version)
+gtm local templates add --gallery facebookarchive/GoogleTagManager-WebTemplate-For-FacebookPixel --name "Facebook Pixel"
+gtm local templates params "Facebook Pixel"          # which parameters exist, which are required
 
-gtm variables create --name "DLV - ecommerce.value" --type v \
-  --config '{"parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"ecommerce.value"}]}' &
-
-gtm variables create --name "DLV - ecommerce.items" --type v \
-  --config '{"parameter":[{"type":"INTEGER","key":"dataLayerVersion","value":"2"},{"type":"BOOLEAN","key":"setDefaultValue","value":"false"},{"type":"TEMPLATE","key":"name","value":"ecommerce.items"}]}' &
-
-wait
-
-# 4. Create triggers in parallel
-for event in view_item add_to_cart begin_checkout purchase; do
-  gtm triggers create \
-    --name "CE - ${event}" \
-    --type CUSTOM_EVENT \
-    --config "{\"customEventFilter\":[{\"type\":\"EQUALS\",\"parameter\":[{\"type\":\"TEMPLATE\",\"key\":\"arg0\",\"value\":\"{{_event}}\"},{\"type\":\"TEMPLATE\",\"key\":\"arg1\",\"value\":\"${event}\"}]}]}" &
+# 4. Variables
+gtm local variables add --name "Meta Pixel ID" --type c --value YOUR_PIXEL_ID
+for key in currency value items; do
+  gtm local variables add --name "DLV - ecommerce.$key" --type v \
+    --json "{\"parameter\": {\"name\": \"ecommerce.$key\", \"dataLayerVersion\": 2, \"setDefaultValue\": false}}"
 done
 
-# Create PageView trigger
-gtm triggers create --name "All Pages" --type PAGEVIEW --config '{}' &
+# 5. Triggers (customEvent shorthand)
+for event in view_item add_to_cart begin_checkout purchase; do
+  gtm local triggers add --name "CE - $event" --event "$event"
+done
 
-wait
+# 6. Tags - the template is referenced by name, no template ID needed yet
+gtm local tags add --name "Meta Pixel - Base" --template "Facebook Pixel" --trigger "All Pages" \
+  --json '{"parameter": {"pixelId": "{{Meta Pixel ID}}", "eventName": "standard", "standardEventName": "PageView"}}'
+for pair in "ViewContent:CE - view_item" "AddToCart:CE - add_to_cart" "InitiateCheckout:CE - begin_checkout" "Purchase:CE - purchase"; do
+  ev="${pair%%:*}"; trig="${pair#*:}"
+  gtm local tags add --name "Meta Pixel - $ev" --template "Facebook Pixel" --trigger "$trig" \
+    --json "{\"parameter\": {\"pixelId\": \"{{Meta Pixel ID}}\", \"eventName\": \"standard\", \"standardEventName\": \"$ev\"}}"
+done
 
-# 5. Import Meta Pixel template
-curl -s "https://raw.githubusercontent.com/facebookarchive/GoogleTagManager-WebTemplate-For-FacebookPixel/refs/heads/main/template.tpl" -o /tmp/fb_template.tpl
-gtm templates create --name "Facebook Pixel" --template-data "$(cat /tmp/fb_template.tpl)"
-
-# 6. Get template ID and create tag type
-TEMPLATE_ID=$(gtm templates list -o json | jq -r '.[0].templateId')
-CONTAINER_ID=240161374
-TAG_TYPE="cvt_${CONTAINER_ID}_${TEMPLATE_ID}"
-
-# 7. Get trigger IDs
-ALL_PAGES_ID=$(gtm triggers list -o json | jq -r '.[] | select(.name=="All Pages") | .triggerId')
-VIEW_ITEM_ID=$(gtm triggers list -o json | jq -r '.[] | select(.name=="CE - view_item") | .triggerId')
-ADD_TO_CART_ID=$(gtm triggers list -o json | jq -r '.[] | select(.name=="CE - add_to_cart") | .triggerId')
-BEGIN_CHECKOUT_ID=$(gtm triggers list -o json | jq -r '.[] | select(.name=="CE - begin_checkout") | .triggerId')
-PURCHASE_ID=$(gtm triggers list -o json | jq -r '.[] | select(.name=="CE - purchase") | .triggerId')
-
-# 8. Create base config
-cat > /tmp/meta_base_config.json << 'EOF'
-{
-  "parameter": [
-    {"type": "TEMPLATE", "key": "pixelIds", "value": "{{Meta Pixel ID}}"},
-    {"type": "TEMPLATE", "key": "inheritEventName", "value": "override"},
-    {"type": "TEMPLATE", "key": "eventName", "value": "standard"},
-    {"type": "TEMPLATE", "key": "eventNameStandard", "value": "PageView"},
-    {"type": "BOOLEAN", "key": "enableDataLayerMapping", "value": "true"},
-    {"type": "BOOLEAN", "key": "enableEdvancedMatching", "value": "true"}
-  ]
-}
-EOF
-
-cat > /tmp/meta_event_config.json << 'EOF'
-{
-  "parameter": [
-    {"type": "TEMPLATE", "key": "pixelIds", "value": "{{Meta Pixel ID}}"},
-    {"type": "TEMPLATE", "key": "inheritEventName", "value": "inherit"},
-    {"type": "BOOLEAN", "key": "enableDataLayerMapping", "value": "true"},
-    {"type": "BOOLEAN", "key": "enableEdvancedMatching", "value": "true"}
-  ]
-}
-EOF
-
-# 9. Create tags
-gtm tags create \
-  --name "Meta Pixel - Base (PageView)" \
-  --type "$TAG_TYPE" \
-  --firing-trigger-id "$ALL_PAGES_ID" \
-  --config "$(cat /tmp/meta_base_config.json)"
-
-# Create event tags in parallel
-gtm tags create --name "Meta Pixel - ViewContent" --type "$TAG_TYPE" \
-  --firing-trigger-id "$VIEW_ITEM_ID" --config "$(cat /tmp/meta_event_config.json)" &
-
-gtm tags create --name "Meta Pixel - AddToCart" --type "$TAG_TYPE" \
-  --firing-trigger-id "$ADD_TO_CART_ID" --config "$(cat /tmp/meta_event_config.json)" &
-
-gtm tags create --name "Meta Pixel - InitiateCheckout" --type "$TAG_TYPE" \
-  --firing-trigger-id "$BEGIN_CHECKOUT_ID" --config "$(cat /tmp/meta_event_config.json)" &
-
-gtm tags create --name "Meta Pixel - Purchase" --type "$TAG_TYPE" \
-  --firing-trigger-id "$PURCHASE_ID" --config "$(cat /tmp/meta_event_config.json)" &
-
-wait
-
-echo "✓ Meta Pixel implementation complete!"
+# 7. Review: validation (already ran on every add), diff, then push everything in one go
+gtm local validate
+gtm local diff --names-only
+gtm local push -o json | jq '{ok, workspaceUrl, results: [.results[] | {op, kind, name, ok, error}]}'
+# -> Tell the user to review and publish at the printed workspaceUrl.
 ```
 
-### Example 2: Inspecting and Cloning Configuration
+Bulk work can equally be done by writing the JSON files directly (e.g. from a script) and running `gtm local validate` afterwards; both routes produce the same files.
+
+### Example 2: Inspecting and Cloning Configuration (per-resource API commands)
 
 ```bash
 #!/bin/bash

@@ -101,8 +101,10 @@ export const builtInVariablesCommand = new Command()
       const types = options.types.split(",").map((t: string) => t.trim());
 
       const tagmanager = await getTagManagerClient();
+      // The API's `path` for built_in_variables.delete must end in `/built_in_variables`
+      // (DELETE tagmanager/v2/{+path}). Passing the bare workspace path deletes the whole workspace.
       await tagmanager.accounts.containers.workspaces.built_in_variables.delete({
-        path: `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}`,
+        path: `accounts/${accountId}/containers/${containerId}/workspaces/${workspaceId}/built_in_variables`,
         type: types,
       });
 

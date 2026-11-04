@@ -6,6 +6,7 @@
  * containers, workspaces, and more.
  */
 
+import "./utils/node-warnings.ts";
 import { Command } from "@cliffy/command";
 import { APP_DESCRIPTION, APP_NAME, APP_VERSION } from "./config/constants.ts";
 import {
@@ -31,6 +32,7 @@ import {
   userPermissionsCommand,
   upgradeCommand,
   agentCommand,
+  localCommand,
 } from "./commands/mod.ts";
 import { printBanner, checkForUpdate } from "./utils/mod.ts";
 
@@ -76,6 +78,7 @@ const main = new Command()
   .example("Setup defaults", "gtm config setup")
   .example("Publish version", "gtm versions publish --version-id 42")
   .example("Upgrade CLI", "gtm upgrade")
+  .example("Local workspace", "gtm local init --account-id 123 --container-id 456")
   .example("AI agent guide", "gtm agent guide")
   // Global options
   .globalOption("-q, --quiet", "Suppress non-essential output")
@@ -131,6 +134,8 @@ const main = new Command()
   .command("gtag-configs", gtagConfigsCommand)
   // User permission commands
   .command("user-permissions", userPermissionsCommand)
+  // Local workspaces (pull / edit offline with validation / diff / push)
+  .command("local", localCommand)
   // Upgrade command
   .command("upgrade", upgradeCommand)
   // Agent resources (for AI/LLM integration)

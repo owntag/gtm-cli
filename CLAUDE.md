@@ -37,6 +37,7 @@ src/
 │   └── client.ts          # GTM API client wrapper, type exports
 ├── commands/
 │   ├── mod.ts             # Command exports
+│   ├── local.ts           # `gtm local` command tree (local workspaces)
 │   ├── auth.ts            # Login, logout, status
 │   ├── config.ts          # Configuration management
 │   ├── upgrade.ts         # Self-update command
@@ -62,7 +63,24 @@ src/
 │   ├── mod.ts             # Config module exports
 │   ├── constants.ts       # App constants, OAuth config
 │   └── store.ts           # User config persistence
+├── local/                 # Local workspaces (`gtm local`)
+│   ├── kinds.ts           # Registry of entity kinds (dirs, API resources, id fields, contexts)
+│   ├── types.ts           # Shared types (workspace meta, snapshots, issues, diffs)
+│   ├── params.ts          # Normalization: simplified params, export casing, canonical GTM form
+│   ├── store.ts           # On-disk layout, file I/O, workspace discovery
+│   ├── workspace.ts       # Indexing + reference resolution (triggers by name, {{vars}}, built-ins)
+│   ├── validate.ts        # Offline validator (errors = API would reject, warnings = likely mistakes)
+│   ├── diff.ts            # Local vs snapshot diffing (field-level)
+│   ├── remote.ts          # All GTM API calls for local workspaces, with 429 retry/backoff
+│   ├── sync.ts            # init / pull
+│   ├── push.ts            # Push planning (conflicts, dependency order) and execution
+│   ├── edit.ts            # add / set / rm with rename propagation
+│   ├── format.ts          # Human-readable terminal rendering
+│   ├── gallery.ts         # Fetching community gallery templates from GitHub (--gallery)
+│   ├── schema/            # GTM knowledge base: built-in variables, known types, template parser
+│   └── ui/                # `gtm local ui` server + single-page GTM-style UI
 └── utils/
+    ├── node-warnings.ts   # Silences Node deprecation warnings from npm deps (imported first in main.ts)
     ├── mod.ts             # Utils module exports
     ├── output.ts          # Output formatting (JSON, table, compact)
     ├── errors.ts          # Error handling utilities
@@ -80,6 +98,7 @@ deno task compile    # Build binary for current platform
 deno task lint       # Run Deno linter
 deno task fmt        # Format code
 deno task check      # Type check
+deno task test       # Run unit tests (tests/)
 ```
 
 ## Authentication Flow
@@ -138,6 +157,11 @@ All support: list, get, create, update, delete, revert
 ### User Management
 - `gtm user-permissions` - User permission management
 
+### Local Workspaces
+- `gtm local init|pull|status|diff|validate|push|ui|open` - work on a full copy of a workspace on disk
+- `gtm local <tags|triggers|variables|folders|templates|clients|transformations|zones> list|get|add|set|rm`
+- `gtm local built-in-variables list|enable|disable`
+
 ## Key Design Decisions
 
 ### 1. Default Configuration
@@ -160,7 +184,15 @@ gtm config set defaultAccountId 123456
 ### 4. Fingerprint Handling
 Most update operations require a fingerprint for optimistic concurrency control. The CLI automatically fetches the current fingerprint if not provided.
 
-### 5. Self-Update
+### 5. Local Workspaces (`gtm local`)
+- A local workspace is a directory with `gtm-workspace.json` + one JSON file per entity (GTM API format, read-only fields stripped) + `.gtm/base.json` (remote snapshot at last pull/push) + `.gtm/live.json`.
+- Input conveniences are normalized in `src/local/params.ts`: simplified parameter objects, export enum casing, trigger/folder references by name. Files written by the CLI are always canonical.
+- Validation (`src/local/validate.ts`) is offline and deterministic. Its rules were verified against the real API (see `src/local/schema/`): required parameters per built-in type, custom template parameter definitions, built-in trigger IDs per context (web: 2147479553/2147479572/2147479573, server: 2147479574), forbidden name characters `{ } : ; " < \`, `customEvent` filter rules, context-specific types. Unknown parameter keys are silently dropped by the API, hence warnings.
+- Templates: `"template": "<name>"` on tags/variables/clients is resolved to the `cvt_` type at diff/push time (`resolveReferencesToIds`), so new templates and their users go out in one push. `galleryReference` is rejected by the API on create but must be re-sent on update (omitting it detaches the template from the gallery); GTM rejects templates with identical code+parameters as duplicates. All three are validated.
+- Push detects conflicts via base-snapshot fingerprints, orders operations by dependency (KIND_ORDER, deletions reversed with dependents first) and retries on 429. It never publishes.
+- Existing commands are untouched except for one bug fix in `src/commands/built-in-variables.ts`: the API's `built_in_variables.delete` is `DELETE tagmanager/v2/{+path}` and `path` must end in `/built_in_variables`. Passing the bare workspace path (as `gtm built-in-variables disable` did up to v1.5.8) **deletes the entire workspace**. Never call that method with a workspace path.
+
+### 6. Self-Update
 - `gtm upgrade` downloads and replaces the binary
 - Update check runs once per day (cached)
 - Shows hint after commands when update available

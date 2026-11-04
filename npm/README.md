@@ -34,6 +34,9 @@ gtm accounts list
 # List containers
 gtm containers list --account-id <account-id>
 
+# Work on a whole container workspace locally (validated offline, pushed in one go)
+gtm local init --account-id <account-id> --container-id <container-id>
+
 # Get help
 gtm --help
 ```
